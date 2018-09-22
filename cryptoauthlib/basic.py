@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
-from ucryptoauthlib import constant as ATCA_CONSTANTS
-from ucryptoauthlib import status as ATCA_STATUS
-from ucryptoauthlib.packet import ATCAPacket
+from cryptoauthlib import constant as ATCA_CONSTANTS
+from cryptoauthlib import status as ATCA_STATUS
+from cryptoauthlib.packet import ATCAPacket
 
 
 class ATECCBasic(object):

@@ -5,7 +5,7 @@ from binascii import hexlify
 import ustruct
 import utime
 from micropython import const
-from ucryptoauthlib import constant as ATCA
+from cryptoauthlib import constant as ATCA
 
 
 class ATCAPacket(object):

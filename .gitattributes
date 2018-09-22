@@ -15,4 +15,4 @@
 # These should also not be modified by git.
 tests/** -text
 examples/** -text
-ucryptoauthlib/** -text
+cryptoauthlib/** -text

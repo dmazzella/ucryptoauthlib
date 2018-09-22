@@ -8,9 +8,9 @@ import ustruct
 import utime
 import micropython
 
-import ucryptoauthlib.constant as ATCA_CONSTANTS
-import ucryptoauthlib.status as ATCA_STATUS
-from ucryptoauthlib.basic import ATECCBasic
+import cryptoauthlib.constant as ATCA_CONSTANTS
+import cryptoauthlib.status as ATCA_STATUS
+from cryptoauthlib.basic import ATECCBasic
 
 
 I2C_ADDRESS = micropython.const(0xC0 >> 1)

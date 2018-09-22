@@ -2,7 +2,7 @@
 # pylint: disable=E0401
 import logging
 
-from ucryptoauthlib.device import ATECC508A
+from cryptoauthlib.device import ATECC508A
 
 logging.basicConfig(level=logging.DEBUG)
 log = logging.getLogger("atecc508a")
