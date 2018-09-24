@@ -17,27 +17,57 @@ class ATECCBasic(object):
         else:
             return ATCA_STATUS.ATCA_SUCCESS, "Success"
 
-    def at_crc(self, data, polynom=0x8005):
-        crc = 0x0000
-        for d in data:
-            for b in range(8):
-                data_bit = 1 if d & 1 << b else 0
-                crc_bit = crc >> 15 & 0xff
-                crc = crc << 1 & 0xffff
-                if data_bit != crc_bit:
-                    crc = crc ^ polynom & 0xffff
-        return bytes([crc & 0x00ff, crc >> 8 & 0xff])
-
     ###########################################################################
     #            CryptoAuthLib Basic API methods for Info command             #
     ###########################################################################
 
-    def atcab_info(self, mode=ATCA_CONSTANTS.INFO_MODE_REVISION, param2=0):
+    def atcab_info_base(self, mode=0):
         packet = ATCAPacket(
-            ATCA_CONSTANTS.ATCA_INFO,
-            param1=mode,
-            param2=param2,
-            # response_data=bytearray(ATCA_CONSTANTS.INFO_SIZE)
+            opcode=ATCA_CONSTANTS.ATCA_INFO,
+            param1=mode
         )
         self.execute(packet)
         return packet
+
+    def atcab_info(self):
+        return self.atcab_info_base(ATCA_CONSTANTS.INFO_MODE_REVISION)
+
+    ###########################################################################
+    #            CryptoAuthLib Basic API methods for SHA command              #
+    ###########################################################################
+
+    def atcab_sha_base(self, mode=0, data=b''):
+
+        txsize = 0
+        cmd_mode = mode & ATCA_CONSTANTS.SHA_MODE_MASK
+        if cmd_mode in (
+            ATCA_CONSTANTS.SHA_MODE_SHA256_START,
+            ATCA_CONSTANTS.SHA_MODE_HMAC_START,
+            ATCA_CONSTANTS.SHA_MODE_SHA256_PUBLIC
+        ):
+            txsize = ATCA_CONSTANTS.ATCA_CMD_SIZE_MIN
+        elif cmd_mode in (
+            ATCA_CONSTANTS.SHA_MODE_SHA256_UPDATE,
+            ATCA_CONSTANTS.SHA_MODE_SHA256_END,
+            ATCA_CONSTANTS.SHA_MODE_HMAC_END
+        ):
+            txsize = ATCA_CONSTANTS.ATCA_CMD_SIZE_MIN + len(data)
+        else:
+            raise ValueError("bad params")
+
+        packet = ATCAPacket(
+            txsize=txsize,
+            opcode=ATCA_CONSTANTS.ATCA_SHA,
+            param1=mode,
+            param2=len(data),
+            request_data=data
+        )
+        self.execute(packet)
+        return packet
+
+    def atcab_sha(self, data):
+        packet = self.atcab_sha_base(ATCA_CONSTANTS.SHA_MODE_SHA256_START)
+        packet = self.atcab_sha_base(ATCA_CONSTANTS.SHA_MODE_SHA256_UPDATE, data)
+        packet = self.atcab_sha_base(ATCA_CONSTANTS.SHA_MODE_SHA256_END)
+        return packet
+

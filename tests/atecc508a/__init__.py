@@ -1,16 +1,17 @@
 # -*- coding: utf-8 -*-
-# pylint: disable=E0401
 import logging
-
 from cryptoauthlib.device import ATECC508A
+
+from atecc508a import tests_info
+from atecc508a import tests_sha
 
 logging.basicConfig(level=logging.DEBUG)
 log = logging.getLogger("atecc508a")
 
+atecc508a = ATECC508A()
+log.info("%s", atecc508a)
 
-def main():
-    atecc508a = ATECC508A()
-    log.debug("%s", atecc508a)
-    log.debug("atcab_info: %s", atecc508a.atcab_info())
+tests_info.run(atecc508a=atecc508a)
+tests_sha.run(atecc508a=atecc508a)
 
 # from atecc508a import main; main()

@@ -24,12 +24,7 @@ class ATECC508A(ATECCBasic):
 
     def __init__(
             self,
-            bus=machine.I2C(
-                1,
-                # scl=machine.Pin.board.X9,
-                # sda=machine.Pin.board.X10,
-                freq=BAUDRATE
-            ),
+            bus=machine.I2C(1, freq=BAUDRATE),
             address=I2C_ADDRESS, retries=RX_RETRIES):
         self._bus = bus
         if address not in self._bus.scan():
@@ -46,13 +41,7 @@ class ATECC508A(ATECCBasic):
         )
 
     def wake(self):
-        # Generate Wake Token
-        machine.Pin.board.X10.value(0)
-        utime.sleep_us(80)
-        machine.Pin.board.X10.value(1)
-
-        # Wait tWHI + tWLO
-        utime.sleep_us(WAKE_DELAY)
+        self._bus.writeto(self._address, b'\x00\x00')
 
     def idle(self):
         self._bus.writeto(self._address, b'\x02')
@@ -62,13 +51,10 @@ class ATECC508A(ATECCBasic):
 
     def execute(self, packet):
         self.wake()
+        # Wait tWHI + tWLO
+        utime.sleep_us(WAKE_DELAY)
 
-        header = ustruct.pack('<B', 0x03)
-        length = ustruct.pack('<B', 7 + packet.request_length)
-        params = length + packet.to_buffer()
-        params += self.at_crc(params)
-
-        self._bus.writeto(self._address, header + params)
+        self._bus.writeto(self._address, b'\x03' + packet.to_buffer())
 
         utime.sleep_ms(packet.delay)
 
