@@ -9,7 +9,6 @@ from cryptoauthlib.constant import (
 )
 from cryptoauthlib.device import ATECC508A
 
-logging.basicConfig(level=logging.DEBUG)
 log = logging.getLogger("atecc508a.tests_info")
 
 

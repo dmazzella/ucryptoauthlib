@@ -4,7 +4,6 @@ import logging
 from cryptoauthlib.constant import INFO_MODE_REVISION, INFO_MODE_STATE
 from cryptoauthlib.device import ATECC508A
 
-logging.basicConfig(level=logging.DEBUG)
 log = logging.getLogger("atecc508a.tests_info")
 
 
