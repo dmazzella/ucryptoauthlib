@@ -13,10 +13,10 @@ def run(atecc508a=None):
         atecc508a = ATECC508A()
 
     packet = atecc508a.atcab_info()
-    log.info("atcab_info: %s", packet)
+    log.debug("atcab_info: %s", packet)
 
     packet = atecc508a.atcab_info_base(INFO_MODE_REVISION)
-    log.info("atcab_info_base - revision: %s", packet)
+    log.debug("atcab_info_base - revision: %s", packet)
 
     packet = atecc508a.atcab_info_base(INFO_MODE_STATE)
-    log.info("atcab_info_base - state: %s", packet)
+    log.debug("atcab_info_base - state: %s", packet)
