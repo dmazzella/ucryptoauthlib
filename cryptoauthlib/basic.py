@@ -37,7 +37,6 @@ class ATECCBasic(object):
     ###########################################################################
 
     def atcab_sha_base(self, mode=0, data=b''):
-
         txsize = 0
         cmd_mode = mode & ATCA_CONSTANTS.SHA_MODE_MASK
         if cmd_mode in (
@@ -66,8 +65,13 @@ class ATECCBasic(object):
         return packet
 
     def atcab_sha(self, data):
+        SHA256_BLOCK_SIZE = ATCA_CONSTANTS.ATCA_SHA256_BLOCK_SIZE
+        data_mv = memoryview(data)
         packet = self.atcab_sha_base(ATCA_CONSTANTS.SHA_MODE_SHA256_START)
-        packet = self.atcab_sha_base(ATCA_CONSTANTS.SHA_MODE_SHA256_UPDATE, data)
-        packet = self.atcab_sha_base(ATCA_CONSTANTS.SHA_MODE_SHA256_END)
+        for i in range(0, len(data_mv), SHA256_BLOCK_SIZE):
+            b = data_mv[i:i + SHA256_BLOCK_SIZE]
+            m = ATCA_CONSTANTS.SHA_MODE_SHA256_UPDATE
+            if len(b) < SHA256_BLOCK_SIZE:
+                m = ATCA_CONSTANTS.SHA_MODE_SHA256_END
+            packet = self.atcab_sha_base(m, b)
         return packet
-

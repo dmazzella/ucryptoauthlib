@@ -1,10 +1,7 @@
 # -*- coding: utf-8 -*-
 # pylint: disable=E0401
-import pyb
 import machine
 import ubinascii
-import uctypes
-import ustruct
 import utime
 import micropython
 
@@ -54,25 +51,25 @@ class ATECC508A(ATECCBasic):
         # Wait tWHI + tWLO
         utime.sleep_us(WAKE_DELAY)
 
+        # Send the command
         self._bus.writeto(self._address, b'\x03' + packet.to_buffer())
 
+        # Delay for execution time
         utime.sleep_ms(packet.delay)
 
-        self._bus.readfrom_into(
-            self._address,
-            packet.response_data_mv[:1]
-        )
-        self._bus.readfrom_into(
-            self._address,
-            packet.response_data_mv[1:packet.response_data_mv[0]]
-        )
+        response = packet.response_data_mv
 
-        packet.response_data = packet.response_data[:packet.response_data_mv[0]]
-
-        err, msg = self.is_error(packet.response_data)
+        # Receive the response
+        self._bus.readfrom_into(self._address, response[0:1])
+        self._bus.readfrom_into(self._address, response[1:response[0]])
+        
+        # Check response
+        err, msg = self.is_error(response)
         if err != ATCA_STATUS.ATCA_SUCCESS:
             raise ValueError(
                 "execute: 0x{:02x} ({:s}) - {:s}".format(
-                    err, msg, ubinascii.hexlify(packet.response_data),
+                    err, msg, ubinascii.hexlify(response),
                 )
             )
+
+        packet.response_data = response[:response[0]]

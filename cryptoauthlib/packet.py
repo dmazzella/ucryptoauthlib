@@ -1,11 +1,12 @@
 # -*- coding: utf-8 -*-
 # pylint: disable=E0401
+import binascii
 from binascii import hexlify
 
 import ustruct
 import utime
-from micropython import const
 from cryptoauthlib import constant as ATCA
+from micropython import const
 
 
 class ATCAPacket(object):

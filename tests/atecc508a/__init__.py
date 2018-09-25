@@ -9,9 +9,9 @@ logging.basicConfig(level=logging.DEBUG)
 log = logging.getLogger("atecc508a")
 
 atecc508a = ATECC508A()
-log.info("%s", atecc508a)
+log.debug("%s", atecc508a)
 
 tests_info.run(atecc508a=atecc508a)
 tests_sha.run(atecc508a=atecc508a)
 
-# from atecc508a import main; main()
+# import atecc508a
