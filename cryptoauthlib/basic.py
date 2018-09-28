@@ -75,3 +75,15 @@ class ATECCBasic(object):
                 m = ATCA_CONSTANTS.SHA_MODE_SHA256_END
             packet = self.atcab_sha_base(m, b)
         return packet
+
+    ###########################################################################
+    #           CryptoAuthLib Basic API methods for Random command            #
+    ###########################################################################
+
+    def atcab_random(self):
+        packet = ATCAPacket(
+            opcode=ATCA_CONSTANTS.ATCA_RANDOM,
+            param1=ATCA_CONSTANTS.RANDOM_SEED_UPDATE,
+        )
+        self.execute(packet)
+        return packet

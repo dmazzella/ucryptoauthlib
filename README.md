@@ -22,6 +22,7 @@ Type "help()" for more information.
 INFO:atecc508a <ATECC508A address=0x60 retries=20>
 INFO:atecc508a INFO SUCCEDED
 INFO:atecc508a SHA SUCCEDED
+INFO:atecc508a RANDOM SUCCEDED
 >>>
 ```
 
@@ -42,6 +43,15 @@ Install 'cryptoauthlib' into the PyBoard
 ---------------------
 
 - Copy 'cryptoauthlib' into PyBoard's filesystem
+
+Software
+---------------------
+
+Currently supported commands are:
+
+- INFO
+- SHA
+- RANDOM
 
 Hardware
 ---------------------
