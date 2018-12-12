@@ -16,21 +16,21 @@ Usage
 - TESTS:
 
 ```python
-MicroPython v1.9.4-575-g6ea6c7cc9-dirty on 2018-09-25; PYBv1.1 with STM32F405RG
+MicroPython v1.9.4-679-ge328a5d46-dirty on 2018-10-29; PYBv1.1 with STM32F405RG
 Type "help()" for more information.
->>> import atecc508a
-INFO:atecc508a <ATECC508A address=0x60 retries=20>
-INFO:atecc508a INFO SUCCEDED
-INFO:atecc508a SHA SUCCEDED
-INFO:atecc508a RANDOM SUCCEDED
->>>
+>>> import ateccX08a; ateccX08a.test("ATECC608A")
+INFO:ateccX08a <ATECCX08A address=0x60 retries=20 device=ATECC608A>
+INFO:ateccX08a INFO SUCCEDED
+INFO:ateccX08a SHA SUCCEDED
+INFO:ateccX08a RANDOM SUCCEDED
+>>> 
 ```
 
 Enable DEBUG:
 ```python
 import logging
 logging.basicConfig(level=logging.DEBUG)
-import atecc508a
+import ateccX08a
 ```
 
 External dependencies
@@ -59,3 +59,4 @@ Hardware
 Currently supported devices are:
 
 - [ATECC508A](http://www.microchip.com/ATECC508A)
+- [ATECC608A](http://www.microchip.com/ATECC608A)

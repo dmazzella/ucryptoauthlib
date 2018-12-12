@@ -14,27 +14,37 @@ I2C_ADDRESS = micropython.const(0xC0 >> 1)
 BAUDRATE = micropython.const(160000)
 WAKE_DELAY = micropython.const(150)
 RX_RETRIES = micropython.const(20)
+SUPPORTED_DEVICES = ("ATECC508A", "ATECC608A")
 
-
-class ATECC508A(ATECCBasic):
-    """ ATECC508A over I2C """
+class ATECCX08A(ATECCBasic):
+    """ ATECCX08A over I2C """
 
     def __init__(
             self,
             bus=machine.I2C(1, freq=BAUDRATE),
-            address=I2C_ADDRESS, retries=RX_RETRIES):
+            address=I2C_ADDRESS, retries=RX_RETRIES,
+            device="ATECC508A"):
         self._bus = bus
         if address not in self._bus.scan():
-            raise ValueError("ATECC508A not ready.")
+            raise ValueError("ATECCX08A not ready.")
+        if device not in SUPPORTED_DEVICES:
+            raise ValueError(
+                "ATECCX08A expected: {!s} got: {:s}".format(
+                    SUPPORTED_DEVICES,
+                    device
+                )
+            )
 
         self._address = address
         self._retries = retries
+        self._device = device
 
     def __str__(self):
-        return "<{:s} address=0x{:02x} retries={:d}>".format(
+        return "<{:s} address=0x{:02x} retries={:d} device={:s}>".format(
             self.__class__.__name__,
             self._address,
-            self._retries
+            self._retries,
+            self._device
         )
 
     def wake(self):
@@ -50,6 +60,9 @@ class ATECC508A(ATECCBasic):
         self.wake()
         # Wait tWHI + tWLO
         utime.sleep_us(WAKE_DELAY)
+
+        # Set device name
+        packet.device = self._device
 
         # Send the command
         self._bus.writeto(self._address, b'\x03' + packet.to_buffer())
