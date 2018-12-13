@@ -140,16 +140,14 @@ class ATECCBasic(object):
         bs = ATCA_CONSTANTS.ATCA_SHA256_BLOCK_SIZE
         d_mv = memoryview(data)
         packet = self.atcab_sha_base(ATCA_CONSTANTS.SHA_MODE_SHA256_START)
-        for i in range(0, len(d_mv), bs):
-            lb = not len(d_mv) % bs
-            b = d_mv[i:i + bs]
+        chunks, rest = divmod(len(d_mv), bs)
+        for chunk in range(chunks):
             m = ATCA_CONSTANTS.SHA_MODE_SHA256_UPDATE
-            if len(b) == bs:
-                packet = self.atcab_sha_base(m, b)
-            if len(b) < bs or lb:
-                b = b'' if lb else b
-                m = ATCA_CONSTANTS.SHA_MODE_SHA256_END
-                packet = self.atcab_sha_base(m, b)
+            b = d_mv[chunk:chunk + bs]
+            packet = self.atcab_sha_base(m, b)
+        m = ATCA_CONSTANTS.SHA_MODE_SHA256_END
+        b = d_mv[chunks * bs:chunks * bs + rest]
+        packet = self.atcab_sha_base(m, b)
         return packet
 
     ###########################################################################
