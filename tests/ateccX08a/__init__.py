@@ -8,6 +8,7 @@ from ateccX08a import tests_random
 
 log = logging.getLogger("ateccX08a")
 
+
 def test(name="ATECC608A"):
     device = ATECCX08A(device=name)
     log.info("%s", device)

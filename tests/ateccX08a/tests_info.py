@@ -12,8 +12,8 @@ def run(device=None):
         raise ValueError("device")
 
     expected = (
-        b'\x07\x00\x00P\x00\x03\x91', # ATECC508A
-        b'\x07\x00\x00`\x02\x808' # ATECC608A
+        b'\x07\x00\x00P\x00\x03\x91',  # ATECC508A
+        b'\x07\x00\x00`\x02\x808'  # ATECC608A
     )
     packet = device.atcab_info()
     assert packet.response_data in expected, packet.response_data
