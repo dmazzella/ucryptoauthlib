@@ -5,6 +5,7 @@ from cryptoauthlib.device import ATECCX08A
 from ateccX08a import tests_info
 from ateccX08a import tests_sha
 from ateccX08a import tests_random
+from ateccX08a import tests_read
 
 log = logging.getLogger("ateccX08a")
 
@@ -21,6 +22,9 @@ def test(name="ATECC608A"):
 
     tests_random.run(device)
     log.info("RANDOM SUCCEDED")
+
+    tests_read.run(device)
+    log.info("READ SUCCEDED")
 
 # import logging
 # logging.basicConfig(level=logging.DEBUG)
