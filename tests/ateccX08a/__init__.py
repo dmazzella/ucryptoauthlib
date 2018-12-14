@@ -1,4 +1,8 @@
 # -*- coding: utf-8 -*-
+# pylint: disable=E1101
+import gc
+gc.threshold((gc.mem_alloc() + gc.mem_free()) // 10)
+
 import logging
 from cryptoauthlib.device import ATECCX08A
 

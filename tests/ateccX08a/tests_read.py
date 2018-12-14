@@ -22,9 +22,9 @@ def run(device=None):
     assert b'\xee' == sn8, bytes(sn8)
     log.debug("atcab_read_serial_number: %s", hexlify(packet.response_data))
 
-    packets = device.atcab_read_bytes_zone(ATCA_ZONE_CONFIG, length=ATCA_ECC_CONFIG_SIZE)
+    packets = device.atcab_read_config_zone()
     for packet in packets:
-        log.debug("atcab_read_bytes_zone: %s", hexlify(packet.response_data))
+        log.debug("atcab_read_config_zone: %s", hexlify(packet.response_data))
 
     for slot in range(16):
         packet = device.atcab_is_slot_locked(slot)

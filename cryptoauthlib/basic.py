@@ -232,6 +232,12 @@ class ATECCBasic(object):
             length=ATCA_CONSTANTS.ATCA_WORD_SIZE
         )
 
+    def atcab_read_config_zone(self):
+        return self.atcab_read_bytes_zone(
+            ATCA_CONSTANTS.ATCA_ZONE_CONFIG,
+            length=ATCA_CONSTANTS.ATCA_ECC_CONFIG_SIZE
+        )
+
     def atcab_read_serial_number(self):
         return self.atcab_read_zone(
             ATCA_CONSTANTS.ATCA_ZONE_CONFIG,
