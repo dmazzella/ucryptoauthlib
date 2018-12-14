@@ -26,7 +26,10 @@ class ATECCBasic(object):
         ):
             raise ValueError("bad params")
 
-        addr = 0x00
+        if slot < 0 or slot > 15:
+            raise ValueError("bad params")
+
+        addr = 0
         offset = offset & 0x07
         if mem_zone in (
             ATCA_CONSTANTS.ATCA_ZONE_CONFIG,
@@ -35,8 +38,8 @@ class ATECCBasic(object):
             addr = block << 3
         elif mem_zone == ATCA_CONSTANTS.ATCA_ZONE_DATA:
             addr = slot << 3
-            addr |= offset
-            addr |= block << 8
+            addr = addr | offset
+            addr = addr | block << 8
 
         return addr
 
@@ -48,7 +51,7 @@ class ATECCBasic(object):
         ):
             raise ValueError("bad params")
 
-        if slot < 0:
+        if slot < 0 or slot > 15:
             raise ValueError("bad params")
 
         if zone == ATCA_CONSTANTS.ATCA_ZONE_CONFIG:
@@ -161,6 +164,73 @@ class ATECCBasic(object):
         )
         self.execute(packet)
         return packet
+
+    def atcab_read_bytes_zone(self, zone, slot=0, block=0, offset=0, length=0):
+        zone_size = self.atcab_get_zone_size(zone, slot=slot)
+
+        if offset + length > zone_size:
+            raise ValueError("bad params")
+
+        packets = []
+
+        BS = ATCA_CONSTANTS.ATCA_BLOCK_SIZE
+        WS = ATCA_CONSTANTS.ATCA_WORD_SIZE
+
+        r_sz = BS
+        d_idx = r_idx = r_of = c_blk = c_of = 0
+        c_blk = offset // BS
+        while d_idx < length:
+            if r_sz == BS and zone_size - c_blk * BS < BS:
+                r_sz = WS
+                c_of = ((d_idx + offset) // WS) % (BS // WS)
+
+            packet = self.atcab_read_zone(
+                zone,
+                slot=slot,
+                block=c_blk,
+                offset=c_of,
+                length=r_sz
+            )
+            packets.append(packet)
+
+            r_of = c_blk * BS + c_of * WS
+            r_idx = offset - r_of if r_of < offset else 0
+            d_idx += length - d_idx if length - d_idx < r_sz - r_idx else r_sz - r_idx
+
+            if r_sz == BS:
+                c_blk += 1
+            else:
+                c_of += 1
+
+        return packets
+
+    def atcab_is_slot_locked(self, slot):
+        # Read the word with the lock bytes
+        # ( SlotLock[2], RFU[2] ) ( config block = 2, word offset = 6 )
+        return self.atcab_read_zone(
+            ATCA_CONSTANTS.ATCA_ZONE_CONFIG,
+            slot=0,
+            block=2,
+            offset=6,
+            length=ATCA_CONSTANTS.ATCA_WORD_SIZE
+        )
+
+    def atcab_is_locked(self, zone):
+        if zone not in (
+            ATCA_CONSTANTS.LOCK_ZONE_CONFIG,
+            ATCA_CONSTANTS.LOCK_ZONE_DATA
+        ):
+            raise ValueError("bad params")
+
+        # Read the word with the lock bytes
+        # (UserExtra, Selector, LockValue, LockConfig) (config block = 2, word offset = 5)
+        return self.atcab_read_zone(
+            ATCA_CONSTANTS.ATCA_ZONE_CONFIG,
+            slot=0,
+            block=2,
+            offset=5,
+            length=ATCA_CONSTANTS.ATCA_WORD_SIZE
+        )
 
     def atcab_read_serial_number(self):
         return self.atcab_read_zone(
