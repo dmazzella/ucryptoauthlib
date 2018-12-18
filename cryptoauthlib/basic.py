@@ -36,6 +36,7 @@ class ATECCBasic(object):
             ATCA_CONSTANTS.ATCA_ZONE_OTP
         ):
             addr = block << 3
+            addr = addr | offset
         elif mem_zone == ATCA_CONSTANTS.ATCA_ZONE_DATA:
             addr = slot << 3
             addr = addr | offset
@@ -339,6 +340,9 @@ class ATECCBasic(object):
     ###########################################################################
 
     def atcab_sha_base(self, mode=0, data=b''):
+        if not isinstance(data, (bytes, bytearray, memoryview)):
+            raise ValueError("bad params")
+
         txsize = 0
         cmd_mode = mode & ATCA_CONSTANTS.SHA_MODE_MASK
         if cmd_mode in (
@@ -387,6 +391,15 @@ class ATECCBasic(object):
     ###########################################################################
     #         CryptoAuthLib Basic API methods for UpdateExtra command         #
     ###########################################################################
+
+    def atcab_updateextra(self, mode, value):
+        packet = ATCAPacket(
+            opcode=ATCA_CONSTANTS.ATCA_UPDATE_EXTRA,
+            param1=mode,
+            param2=value
+        )
+        self.execute(packet)
+        return packet
 
     ###########################################################################
     #            CryptoAuthLib Basic API methods for Verify command           #
