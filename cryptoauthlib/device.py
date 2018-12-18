@@ -47,6 +47,10 @@ class ATECCX08A(ATECCBasic):
             self._device
         )
 
+    @property
+    def device(self):
+        return self._device
+
     def wake(self):
         self._bus.writeto(self._address, b'\x00\x00')
 
