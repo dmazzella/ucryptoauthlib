@@ -23,6 +23,8 @@ INFO:ateccX08a <ATECCX08A address=0x60 retries=20 device=ATECC608A>
 INFO:ateccX08a INFO SUCCEDED
 INFO:ateccX08a SHA SUCCEDED
 INFO:ateccX08a RANDOM SUCCEDED
+INFO:ateccX08a NONCE SUCCEDED
+INFO:ateccX08a READ SUCCEDED
 >>> 
 ```
 
@@ -52,6 +54,10 @@ Currently supported commands are:
 - INFO
 - SHA
 - RANDOM
+- NONCE
+- READ (1)
+
+  (1) Not all features are implemented
 
 Hardware
 ---------------------
