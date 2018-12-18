@@ -18,7 +18,7 @@ class ATECCBasic(object):
             return ATCA_STATUS.ATCA_SUCCESS, "Success"
 
     def atcab_get_addr(self, zone, slot=0, block=0, offset=0):
-        mem_zone = zone & 0x03
+        mem_zone = zone & ATCA_CONSTANTS.ATCA_ZONE_MASK
         if mem_zone not in (
             ATCA_CONSTANTS.ATCA_ZONE_CONFIG,
             ATCA_CONSTANTS.ATCA_ZONE_DATA,
@@ -124,6 +124,88 @@ class ATECCBasic(object):
     ###########################################################################
     #            CryptoAuthLib Basic API methods for Nonce command            #
     ###########################################################################
+
+    def atcab_nonce_base(self, mode, zero=0, numbers=None):
+        nonce_mode = mode & ATCA_CONSTANTS.NONCE_MODE_MASK
+        if nonce_mode not in (
+            ATCA_CONSTANTS.NONCE_MODE_SEED_UPDATE,
+            ATCA_CONSTANTS.NONCE_MODE_NO_SEED_UPDATE,
+            ATCA_CONSTANTS.NONCE_MODE_PASSTHROUGH
+        ):
+            raise ValueError("bad params")
+
+        if not isinstance(numbers, (bytes, bytearray, memoryview)):
+            raise ValueError("bad params")
+
+        txsize = 0
+        if nonce_mode in (
+            ATCA_CONSTANTS.NONCE_MODE_SEED_UPDATE,
+            ATCA_CONSTANTS.NONCE_MODE_NO_SEED_UPDATE
+        ):
+            txsize = ATCA_CONSTANTS.NONCE_COUNT_SHORT
+        elif nonce_mode == ATCA_CONSTANTS.NONCE_MODE_PASSTHROUGH:
+            nonce_mode_input = mode & ATCA_CONSTANTS.NONCE_MODE_INPUT_LEN_MASK
+            if nonce_mode_input == ATCA_CONSTANTS.NONCE_MODE_INPUT_LEN_64:
+                txsize = ATCA_CONSTANTS.NONCE_COUNT_LONG_64
+            else:
+                txsize = ATCA_CONSTANTS.NONCE_COUNT_LONG
+        else:
+            raise ValueError("bad params")
+
+        n_mv = memoryview(numbers)
+        if len(n_mv) < txsize-ATCA_CONSTANTS.ATCA_CMD_SIZE_MIN:
+            raise ValueError("bad params")
+
+        packet = ATCAPacket(
+            txsize=txsize,
+            opcode=ATCA_CONSTANTS.ATCA_NONCE,
+            param1=mode,
+            param2=zero,
+            request_data=n_mv[:txsize-ATCA_CONSTANTS.ATCA_CMD_SIZE_MIN]
+        )
+
+        self.execute(packet)
+        return packet
+
+    def atcab_nonce(self, numbers=None):
+        return self.atcab_nonce_base(
+            ATCA_CONSTANTS.NONCE_MODE_PASSTHROUGH,
+            numbers=numbers
+        )
+
+    def atcab_nonce_load(self, target, numbers=None):
+        if not isinstance(numbers, (bytes, bytearray, memoryview)):
+            raise ValueError("bad params")
+
+        mode = ATCA_CONSTANTS.NONCE_MODE_PASSTHROUGH
+        mode = mode | (ATCA_CONSTANTS.NONCE_MODE_TARGET_MASK & target)
+
+        if len(numbers) == 32:
+            mode = mode | ATCA_CONSTANTS.NONCE_MODE_INPUT_LEN_32
+        elif len(numbers) == 64:
+            mode = mode | ATCA_CONSTANTS.NONCE_MODE_INPUT_LEN_64
+        else:
+            raise ValueError("bad params")
+
+        return self.atcab_nonce_base(mode, numbers=numbers)
+
+    def atcab_nonce_rand(self, numbers=None):
+        return self.atcab_nonce_base(
+            ATCA_CONSTANTS.NONCE_MODE_SEED_UPDATE,
+            numbers=numbers
+        )
+
+    def atcab_challenge(self, numbers=None):
+        return self.atcab_nonce_base(
+            ATCA_CONSTANTS.NONCE_MODE_PASSTHROUGH,
+            numbers=numbers
+        )
+
+    def atcab_challenge_seed_update(self, numbers=None):
+        return self.atcab_nonce_base(
+            ATCA_CONSTANTS.NONCE_MODE_SEED_UPDATE,
+            numbers=numbers
+        )
 
     ###########################################################################
     #          CryptoAuthLib Basic API methods for PrivWrite command          #
