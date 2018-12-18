@@ -23,8 +23,8 @@ def run(device=None):
     log.debug("atcab_read_serial_number: %s", hexlify(packet.response_data))
 
     packets = device.atcab_read_config_zone()
-    for packet in packets:
-        log.debug("atcab_read_config_zone: %s", hexlify(packet.response_data))
+    config = b''.join([bytes(packet.response_data[1:-2]) for packet in packets])
+    log.debug("atcab_read_config_zone %d: %s", len(config), hexlify(config))
 
     for slot in range(16):
         packet = device.atcab_is_slot_locked(slot)
@@ -37,8 +37,8 @@ def run(device=None):
         locked = False
         if zone == LOCK_ZONE_CONFIG:
             zone_str = "LOCK_ZONE_CONFIG"
-            locked = bool(packet.response_data[3] != 0x55)
+            locked = bool(packet.response_data[3+1] != 0x55)
         elif zone == LOCK_ZONE_DATA:
             zone_str = "LOCK_ZONE_DATA"
-            locked = bool(packet.response_data[2] != 0x55)
+            locked = bool(packet.response_data[2+1] != 0x55)
         log.debug("atcab_is_locked: %s %r %s", zone_str, locked, hexlify(packet.response_data))
