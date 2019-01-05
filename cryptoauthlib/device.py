@@ -6,6 +6,7 @@ import utime
 import micropython
 
 import cryptoauthlib.constant as ATCA_CONSTANTS
+import cryptoauthlib.exceptions as ATCA_EXECUTIONS
 import cryptoauthlib.status as ATCA_STATUS
 from cryptoauthlib.basic import ATECCBasic
 
@@ -24,17 +25,19 @@ class ATECCX08A(ATECCBasic):
             bus=machine.I2C(1, freq=BAUDRATE),
             address=I2C_ADDRESS, retries=RX_RETRIES,
             device="ATECC508A"):
-        self._bus = bus
-        if address not in self._bus.scan():
-            raise ValueError("ATECCX08A not ready.")
+
+        if address not in bus.scan():
+            raise ATCA_EXECUTIONS.NoDevicesFoundError()
+
         if device not in SUPPORTED_DEVICES:
-            raise ValueError(
+            raise ATCA_EXECUTIONS.UnsupportedDeviceError(
                 "ATECCX08A expected: {!s} got: {:s}".format(
                     SUPPORTED_DEVICES,
                     device
                 )
             )
 
+        self._bus = bus
         self._address = address
         self._retries = retries
         self._device = device
@@ -81,12 +84,11 @@ class ATECCX08A(ATECCBasic):
         self._bus.readfrom_into(self._address, response[1:response[0]])
         
         # Check response
-        err, msg = self.is_error(response)
-        if err != ATCA_STATUS.ATCA_SUCCESS:
-            raise ValueError(
-                "execute: 0x{:02x} ({:s}) - {:s}".format(
-                    err, msg, ubinascii.hexlify(response),
-                )
-            )
-
-        packet.response_data = response[:response[0]]
+        err, exc = self.is_error(response)
+        if err == ATCA_STATUS.ATCA_SUCCESS:
+            packet.response_data = response[:response[0]]
+        elif err == ATCA_STATUS.ATCA_WAKE_SUCCESS:
+            pass
+        else:
+            if exc is not None:
+                raise exc(ubinascii.hexlify(response))

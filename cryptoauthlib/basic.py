@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 from cryptoauthlib import constant as ATCA_CONSTANTS
+from cryptoauthlib import exceptions as ATCA_EXCEPTIONS
 from cryptoauthlib import status as ATCA_STATUS
 from cryptoauthlib.packet import ATCAPacket
 
@@ -15,7 +16,7 @@ class ATECCBasic(object):
         if data[0] == 0x04:  # error packets are always 4 bytes long
             return ATCA_STATUS.decode_error(data[1])
         else:
-            return ATCA_STATUS.ATCA_SUCCESS, "Success"
+            return ATCA_STATUS.ATCA_SUCCESS, None
 
     def atcab_get_addr(self, zone, slot=0, block=0, offset=0):
         mem_zone = zone & ATCA_CONSTANTS.ATCA_ZONE_MASK
@@ -24,10 +25,10 @@ class ATECCBasic(object):
             ATCA_CONSTANTS.ATCA_ZONE_DATA,
             ATCA_CONSTANTS.ATCA_ZONE_OTP
         ):
-            raise ValueError("bad params")
+            raise ATCA_EXCEPTIONS.BadArgumentError()
 
         if slot < 0 or slot > 15:
-            raise ValueError("bad params")
+            raise ATCA_EXCEPTIONS.BadArgumentError()
 
         addr = 0
         offset = offset & 0x07
@@ -50,10 +51,10 @@ class ATECCBasic(object):
             ATCA_CONSTANTS.ATCA_ZONE_DATA,
             ATCA_CONSTANTS.ATCA_ZONE_OTP
         ):
-            raise ValueError("bad params")
+            raise ATCA_EXCEPTIONS.BadArgumentError()
 
         if slot < 0 or slot > 15:
-            raise ValueError("bad params")
+            raise ATCA_EXCEPTIONS.BadArgumentError()
 
         if zone == ATCA_CONSTANTS.ATCA_ZONE_CONFIG:
             return 128
@@ -118,6 +119,38 @@ class ATECCBasic(object):
     #             CryptoAuthLib Basic API methods for Lock command            #
     ###########################################################################
 
+    def atcab_lock(self, mode, crc=0):
+        packet = ATCAPacket(
+            txsize=ATCA_CONSTANTS.LOCK_COUNT,
+            opcode=ATCA_CONSTANTS.ATCA_LOCK,
+            param1=mode,
+            param2=crc
+        )
+        self.execute(packet)
+        return packet
+
+    def atcab_lock_config_zone(self):
+        return self.atcab_lock(
+            ATCA_CONSTANTS.LOCK_ZONE_NO_CRC | ATCA_CONSTANTS.LOCK_ZONE_CONFIG
+        )
+
+    def atcab_lock_config_zone_crc(self, crc):
+        return self.atcab_lock(ATCA_CONSTANTS.LOCK_ZONE_CONFIG, crc)
+
+    def atcab_lock_data_zone(self):
+        return self.atcab_lock(
+            ATCA_CONSTANTS.LOCK_ZONE_NO_CRC | ATCA_CONSTANTS.LOCK_ZONE_DATA
+        )
+
+    def atcab_lock_data_zone_crc(self, crc):
+        return self.atcab_lock(ATCA_CONSTANTS.LOCK_ZONE_DATA, crc)
+
+    def atcab_lock_data_slot(self, slot):
+        if slot < 0 or slot > 15:
+            raise ATCA_EXCEPTIONS.BadArgumentError()
+
+        return self.atcab_lock((slot << 2) | ATCA_CONSTANTS.LOCK_ZONE_DATA_SLOT)
+
     ###########################################################################
     #             CryptoAuthLib Basic API methods for MAC command             #
     ###########################################################################
@@ -133,10 +166,10 @@ class ATECCBasic(object):
             ATCA_CONSTANTS.NONCE_MODE_NO_SEED_UPDATE,
             ATCA_CONSTANTS.NONCE_MODE_PASSTHROUGH
         ):
-            raise ValueError("bad params")
+            raise ATCA_EXCEPTIONS.BadArgumentError()
 
         if not isinstance(numbers, (bytes, bytearray, memoryview)):
-            raise ValueError("bad params")
+            raise ATCA_EXCEPTIONS.BadArgumentError()
 
         txsize = 0
         if nonce_mode in (
@@ -151,11 +184,11 @@ class ATECCBasic(object):
             else:
                 txsize = ATCA_CONSTANTS.NONCE_COUNT_LONG
         else:
-            raise ValueError("bad params")
+            raise ATCA_EXCEPTIONS.BadArgumentError()
 
         n_mv = memoryview(numbers)
         if len(n_mv) < txsize-ATCA_CONSTANTS.ATCA_CMD_SIZE_MIN:
-            raise ValueError("bad params")
+            raise ATCA_EXCEPTIONS.BadArgumentError()
 
         packet = ATCAPacket(
             txsize=txsize,
@@ -176,7 +209,7 @@ class ATECCBasic(object):
 
     def atcab_nonce_load(self, target, numbers=None):
         if not isinstance(numbers, (bytes, bytearray, memoryview)):
-            raise ValueError("bad params")
+            raise ATCA_EXCEPTIONS.BadArgumentError()
 
         mode = ATCA_CONSTANTS.NONCE_MODE_PASSTHROUGH
         mode = mode | (ATCA_CONSTANTS.NONCE_MODE_TARGET_MASK & target)
@@ -186,7 +219,7 @@ class ATECCBasic(object):
         elif len(numbers) == 64:
             mode = mode | ATCA_CONSTANTS.NONCE_MODE_INPUT_LEN_64
         else:
-            raise ValueError("bad params")
+            raise ATCA_EXCEPTIONS.BadArgumentError()
 
         return self.atcab_nonce_base(mode, numbers=numbers)
 
@@ -233,7 +266,7 @@ class ATECCBasic(object):
             ATCA_CONSTANTS.ATCA_WORD_SIZE,
             ATCA_CONSTANTS.ATCA_BLOCK_SIZE
         ):
-            raise ValueError("bad params")
+            raise ATCA_EXCEPTIONS.BadArgumentError()
 
         addr = self.atcab_get_addr(zone, slot=slot, block=block, offset=offset)
 
@@ -248,11 +281,17 @@ class ATECCBasic(object):
         self.execute(packet)
         return packet
 
+    def atcab_read_serial_number(self):
+        return self.atcab_read_zone(
+            ATCA_CONSTANTS.ATCA_ZONE_CONFIG,
+            length=ATCA_CONSTANTS.ATCA_BLOCK_SIZE
+        )
+
     def atcab_read_bytes_zone(self, zone, slot=0, block=0, offset=0, length=0):
         zone_size = self.atcab_get_zone_size(zone, slot=slot)
 
         if offset + length > zone_size:
-            raise ValueError("bad params")
+            raise ATCA_EXCEPTIONS.BadArgumentError()
 
         packets = []
 
@@ -303,7 +342,7 @@ class ATECCBasic(object):
             ATCA_CONSTANTS.LOCK_ZONE_CONFIG,
             ATCA_CONSTANTS.LOCK_ZONE_DATA
         ):
-            raise ValueError("bad params")
+            raise ATCA_EXCEPTIONS.BadArgumentError()
 
         # Read the word with the lock bytes
         # (UserExtra, Selector, LockValue, LockConfig) (config block = 2, word offset = 5)
@@ -321,11 +360,17 @@ class ATECCBasic(object):
             length=ATCA_CONSTANTS.ATCA_ECC_CONFIG_SIZE
         )
 
-    def atcab_read_serial_number(self):
-        return self.atcab_read_zone(
-            ATCA_CONSTANTS.ATCA_ZONE_CONFIG,
-            length=ATCA_CONSTANTS.ATCA_BLOCK_SIZE
-        )
+    def atcab_read_enc(self, key_id, block, data, enc_key, enc_key_id):
+        raise NotImplementedError("atcab_read_enc")
+
+    def atcab_cmp_config_zone(self, config_data):
+        raise NotImplementedError("atcab_cmp_config_zone")
+
+    def atcab_read_sig(self, slot):
+        raise NotImplementedError("atcab_read_sig")
+
+    def atcab_read_pubkey(self, slot):
+        raise NotImplementedError("atcab_read_pubkey")
 
     ###########################################################################
     #          CryptoAuthLib Basic API methods for SecureBoot command         #
@@ -341,7 +386,7 @@ class ATECCBasic(object):
 
     def atcab_sha_base(self, mode=0, data=b''):
         if not isinstance(data, (bytes, bytearray, memoryview)):
-            raise ValueError("bad params")
+            raise ATCA_EXCEPTIONS.BadArgumentError()
 
         txsize = 0
         cmd_mode = mode & ATCA_CONSTANTS.SHA_MODE_MASK
@@ -358,7 +403,7 @@ class ATECCBasic(object):
         ):
             txsize = ATCA_CONSTANTS.ATCA_CMD_SIZE_MIN + len(data)
         else:
-            raise ValueError("bad params")
+            raise ATCA_EXCEPTIONS.BadArgumentError()
 
         packet = ATCAPacket(
             txsize=txsize,
@@ -405,6 +450,165 @@ class ATECCBasic(object):
     #            CryptoAuthLib Basic API methods for Verify command           #
     ###########################################################################
 
+    def atcab_verify(self, mode, key_id, signature, public_key, other_data, mac):
+        raise NotImplementedError("atcab_verify")
+
+    def atcab_verify_extern(self, message, signature, public_key, is_verified):
+        raise NotImplementedError("atcab_verify_extern")
+
+    def atcab_verify_extern_mac(self, message, signature, public_key, num_in, io_key, is_verified):
+        raise NotImplementedError("atcab_verify_extern_mac")
+
+    def atcab_verify_stored(self, message, signature, key_id, is_verified):
+        raise NotImplementedError("atcab_verify_stored")
+
+    def atcab_verify_stored_mac(self, message, signature, key_id, num_in, io_key, is_verified):
+        raise NotImplementedError("atcab_verify_stored_mac")
+
+    def atcab_verify_validate(self,  key_id, signature, other_data, is_verified):
+        raise NotImplementedError("atcab_verify_validate")
+
+    def atcab_verify_invalidate(self,  key_id, signature, other_data, is_verified):
+        raise NotImplementedError("atcab_verify_invalidate")
+
     ###########################################################################
     #            CryptoAuthLib Basic API methods for Write command            #
     ###########################################################################
+
+    def atcab_write(self, zone, address, value=None, mac=None):
+        if not isinstance(value, (bytes, bytearray, memoryview)):
+            raise ATCA_EXCEPTIONS.BadArgumentError()
+
+        txsize = ATCA_CONSTANTS.ATCA_CMD_SIZE_MIN
+        data = bytearray(64)
+        if zone & ATCA_CONSTANTS.ATCA_ZONE_READWRITE_32:
+            # 32-byte write
+            data[0:32] = value
+            txsize += ATCA_CONSTANTS.ATCA_BLOCK_SIZE
+            # Only 32-byte writes can have a MAC
+            if isinstance(mac, (bytes, bytearray, memoryview)):
+                data[32:64] = mac
+                txsize += ATCA_CONSTANTS.WRITE_MAC_SIZE
+        else:
+            # 4-byte write
+            data[0:4] = value
+            txsize += ATCA_CONSTANTS.ATCA_WORD_SIZE
+
+        packet = ATCAPacket(
+            txsize=txsize,
+            opcode=ATCA_CONSTANTS.ATCA_WRITE,
+            param1=zone,
+            param2=address,
+            request_data=data
+        )
+        self.execute(packet)
+        return packet
+
+    def atcab_write_zone(self, zone, slot=0, block=0, offset=0, data=None):
+        if not isinstance(data, (bytes, bytearray, memoryview)):
+            raise ATCA_EXCEPTIONS.BadArgumentError()
+
+        length = len(data)
+        if length not in (
+            ATCA_CONSTANTS.ATCA_WORD_SIZE,
+            ATCA_CONSTANTS.ATCA_BLOCK_SIZE
+        ):
+            raise ATCA_EXCEPTIONS.BadArgumentError()
+
+        if length == ATCA_CONSTANTS.ATCA_BLOCK_SIZE:
+            zone = zone | ATCA_CONSTANTS.ATCA_ZONE_READWRITE_32
+
+        addr = self.atcab_get_addr(zone, slot=slot, block=block, offset=offset)
+        return self.atcab_write(zone, addr, data)
+
+    def atcab_write_bytes_zone(self, zone, slot=0, offset=0, data=None):
+        if not isinstance(data, (bytes, bytearray, memoryview)):
+            raise ATCA_EXCEPTIONS.BadArgumentError()
+
+        zone_size = self.atcab_get_zone_size(zone, slot=slot)
+
+        length = len(data)
+        if offset + length > zone_size:
+            raise ATCA_EXCEPTIONS.BadArgumentError()
+
+        packets = []
+
+        BS = ATCA_CONSTANTS.ATCA_BLOCK_SIZE
+        WS = ATCA_CONSTANTS.ATCA_WORD_SIZE
+        ZC = ATCA_CONSTANTS.ATCA_ZONE_CONFIG
+
+        d_idx = 0
+        c_blk = offset // BS
+        c_wrd = (offset % BS) // WS
+        d_mv = memoryview(data)
+        while d_idx < length:
+            # The last item makes sure we handle the selector, user extra, and lock bytes in the config properly
+            if c_wrd == 0 and length - d_idx >= BS and not (zone == ZC and c_blk == 2):
+                packet = self.atcab_write_zone(
+                    zone,
+                    slot=slot,
+                    block=c_blk,
+                    offset=0,
+                    data=d_mv[d_idx:BS]
+                )
+                packets.append(packet)
+                d_idx += BS
+                c_blk += 1
+            else:
+                # Skip trying to change UserExtra, Selector, LockValue and LockConfig which require the UpdateExtra command to change
+                if not (zone == ZC and c_blk == 2 and c_wrd == 5):
+                    packet = self.atcab_write_zone(
+                        zone,
+                        slot=slot,
+                        block=c_blk,
+                        offset=c_wrd,
+                        data=d_mv[d_idx:WS]
+                    )
+                    packets.append(packet)
+                d_idx += WS
+                c_wrd += 1
+                if c_wrd == BS // WS:
+                    c_blk += 1
+                    c_wrd = 0
+
+        return packets
+
+    def atcab_write_pubkey(self, slot, public_key):
+        raise NotImplementedError("atcab_write_pubkey")
+
+    def atcab_write_config_zone(self, config_data):
+        if not isinstance(config_data, (bytes, bytearray, memoryview)):
+            raise ATCA_EXCEPTIONS.BadArgumentError()
+
+        ZC = ATCA_CONSTANTS.ATCA_ZONE_CONFIG
+
+        config_size = self.atcab_get_zone_size(ZC)
+
+        # Write config zone excluding UserExtra and Selector
+        packets = self.atcab_write_bytes_zone(
+            ZC,
+            slot=0,
+            offset=16,
+            data=config_data[16:config_size - 16]
+        )
+
+        # Write the UserExtra and Selector. This may fail if either value is already non-zero.
+        packet = self.atcab_updateextra(
+            ATCA_CONSTANTS.UPDATE_MODE_USER_EXTRA,
+            config_data[84]
+        )
+        packets.append(packet)
+
+        packet = self.atcab_updateextra(
+            ATCA_CONSTANTS.UPDATE_MODE_SELECTOR,
+            config_data[85]
+        )
+        packets.append(packet)
+
+        return packets
+
+    def atcab_write_enc(self, key_id, block, data, enc_key, enc_key_id):
+        raise NotImplementedError("atcab_write_enc")
+
+    def atcab_write_config_counter(self, counter_id, counter_value):
+        raise NotImplementedError("atcab_write_config_counter")

@@ -2,6 +2,8 @@
 # pylint: disable=E0401
 from micropython import const
 
+from cryptoauthlib import exceptions as ATCA_EXECUTIONS
+
 """ status codes """
 
 # Function succeeded.
@@ -78,13 +80,13 @@ ATCA_ALLOC_FAILURE = const(0xFB)
 
 def decode_error(error):
     return {
-        0x00: (ATCA_SUCCESS, "no Error"),
-        0x01: (ATCA_CHECKMAC_VERIFY_FAILED, "checkmac or verify failed"),
-        0x03: (ATCA_PARSE_ERROR, "command received byte length, opcode or parameter was illegal"),
-        0x05: (ATCA_STATUS_ECC, "computation error during ECC processing causing invalid results"),
-        0x07: (ATCA_STATUS_SELFTEST_ERROR, "chip is in self test failure mode"),
-        0x08: (ATCA_HEALTH_TEST_ERROR, "random number generator health test error"),
-        0x0F: (ATCA_EXECUTION_ERROR, "chip can't execute the command"),
-        0x11: (ATCA_WAKE_SUCCESS, "chip was successfully woken up"),
-        0xFF: (ATCA_STATUS_CRC, "bad crc found (command not properly received by device) or other comm error"),
-    }.get(error, (ATCA_GEN_FAIL, "general fail"))
+        0x00: (ATCA_SUCCESS, None),
+        0x01: (ATCA_CHECKMAC_VERIFY_FAILED, ATCA_EXECUTIONS.CheckmacVerifyFailedError),
+        0x03: (ATCA_PARSE_ERROR, ATCA_EXECUTIONS.ParseError),
+        0x05: (ATCA_STATUS_ECC, ATCA_EXECUTIONS.EccFaultError),
+        0x07: (ATCA_STATUS_SELFTEST_ERROR, ATCA_EXECUTIONS.SelfTestError),
+        0x08: (ATCA_HEALTH_TEST_ERROR, ATCA_EXECUTIONS.HealthTestError),
+        0x0F: (ATCA_EXECUTION_ERROR, ATCA_EXECUTIONS.ExecutionError),
+        0x11: (ATCA_WAKE_SUCCESS, None),
+        0xFF: (ATCA_STATUS_CRC, ATCA_EXECUTIONS.CrcError),
+    }.get(error, (ATCA_GEN_FAIL, ATCA_EXECUTIONS.GenericError))
