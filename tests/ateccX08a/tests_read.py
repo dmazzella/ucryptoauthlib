@@ -1,6 +1,9 @@
 # -*- coding: utf-8 -*-
+# pylint: disable=E0401
 import logging
-from binascii import hexlify
+import sys
+from ubinascii import hexlify
+from uio import BytesIO, StringIO
 
 from cryptoauthlib.constant import (
     ATCA_ZONE_CONFIG,
@@ -8,6 +11,7 @@ from cryptoauthlib.constant import (
     LOCK_ZONE_CONFIG,
     LOCK_ZONE_DATA
 )
+from cryptoauthlib import util as ATEC_UTIL
 
 log = logging.getLogger("ateccX08a.tests_read")
 
@@ -23,14 +27,19 @@ def run(device=None):
     log.debug("atcab_read_serial_number: %s", hexlify(packet.response_data))
 
     packets = device.atcab_read_config_zone()
-    config = b''.join([bytes(packet.response_data[1:-2]) for packet in packets])
+    config = b''.join([bytes(packet.response_data[1:-2])
+                       for packet in packets])
     log.debug("atcab_read_config_zone %d: %s", len(config), hexlify(config))
+    log.debug("atcab_read_config_zone dump_configuration:")
+    ATEC_UTIL.dump_configuration(config, stream=sys.stderr)
 
     for slot in range(16):
         packet = device.atcab_is_slot_locked(slot)
-        slot_locked = (packet.response_data[0+1]) | ((packet.response_data[1+1]) << 8)
+        slot_locked = (
+            packet.response_data[0+1]) | ((packet.response_data[1+1]) << 8)
         locked = bool((slot_locked & (1 << slot)) == 0)
-        log.debug("atcab_is_slot_locked %d: %r %s", slot, locked, hexlify(packet.response_data))
+        log.debug("atcab_is_slot_locked %d: %r %s", slot,
+                  locked, hexlify(packet.response_data))
 
     for zone in (LOCK_ZONE_CONFIG, LOCK_ZONE_DATA):
         packet = device.atcab_is_locked(zone)
@@ -41,4 +50,5 @@ def run(device=None):
         elif zone == LOCK_ZONE_DATA:
             zone_str = "LOCK_ZONE_DATA"
             locked = bool(packet.response_data[2+1] != 0x55)
-        log.debug("atcab_is_locked: %s %r %s", zone_str, locked, hexlify(packet.response_data))
+        log.debug("atcab_is_locked: %s %r %s", zone_str,
+                  locked, hexlify(packet.response_data))
