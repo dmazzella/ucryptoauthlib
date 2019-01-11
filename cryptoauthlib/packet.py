@@ -1,10 +1,8 @@
 # -*- coding: utf-8 -*-
 # pylint: disable=E0401
-import binascii
-from binascii import hexlify
-
 import ustruct
 import utime
+from ubinascii import hexlify
 from cryptoauthlib import constant as ATCA
 from micropython import const
 

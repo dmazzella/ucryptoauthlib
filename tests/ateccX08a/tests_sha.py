@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
+# pylint: disable=E0401
 import logging
-from binascii import hexlify
+from ubinascii import hexlify
 
 from cryptoauthlib.constant import (
     SHA_MODE_SHA256_START,
