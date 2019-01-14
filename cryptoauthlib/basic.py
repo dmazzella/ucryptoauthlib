@@ -499,7 +499,7 @@ class ATECCBasic(object):
             opcode=ATCA_CONSTANTS.ATCA_WRITE,
             param1=zone,
             param2=address,
-            request_data=data
+            request_data=data[:txsize-ATCA_CONSTANTS.ATCA_CMD_SIZE_MIN]
         )
         self.execute(packet)
         return packet
@@ -549,7 +549,7 @@ class ATECCBasic(object):
                     slot=slot,
                     block=c_blk,
                     offset=0,
-                    data=d_mv[d_idx:BS]
+                    data=d_mv[d_idx:d_idx+BS]
                 )
                 packets.append(packet)
                 d_idx += BS
@@ -562,7 +562,7 @@ class ATECCBasic(object):
                         slot=slot,
                         block=c_blk,
                         offset=c_wrd,
-                        data=d_mv[d_idx:WS]
+                        data=d_mv[d_idx:d_idx+WS]
                     )
                     packets.append(packet)
                 d_idx += WS
