@@ -574,19 +574,45 @@ class ATECCBasic(object):
         return packets
 
     def atcab_write_pubkey(self, slot, public_key):
-        raise NotImplementedError("atcab_write_pubkey")
+        if not isinstance(public_key, (bytes, bytearray, memoryview)):
+            raise ATCA_EXCEPTIONS.BadArgumentError()
+
+        # Check the value of the slot. Only slots 8 to 15 are large enough to store a public key
+        if slot < 8 or slot > 15:
+            raise ATCA_EXCEPTIONS.BadArgumentError("Only slots 8 to 15 are large enough to store a public key")
+
+        public_key_formatted = bytearray(72)
+
+        # The 64 byte P256 public key gets written to a 72 byte slot in the following pattern
+        #
+        # | Block 1                     | Block 2                                      | Block 3       |
+        # | Pad: 4 Bytes | PubKey[0:27] | PubKey[28:31] | Pad: 4 Bytes | PubKey[32:55] | PubKey[56:63] |
+
+        PKD = ATCA_CONSTANTS.ATCA_PUB_KEY_PAD
+        KS = ATCA_CONSTANTS.ATCA_KEY_SIZE
+
+        # Copy X to padded position
+        public_key_formatted[PKD:PKD+KS] = public_key[0:KS]
+        # Copy Y to padded position
+        public_key_formatted[KS+PKD+PKD:KS+PKD+PKD+KS] = public_key[KS:KS+KS]
+
+        packets = self.atcab_write_bytes_zone(
+            ATCA_CONSTANTS.ATCA_ZONE_DATA,
+            slot=slot,
+            data=public_key_formatted
+        )
+
+        return packets
 
     def atcab_write_config_zone(self, config_data):
         if not isinstance(config_data, (bytes, bytearray, memoryview)):
             raise ATCA_EXCEPTIONS.BadArgumentError()
 
-        ZC = ATCA_CONSTANTS.ATCA_ZONE_CONFIG
-
-        config_size = self.atcab_get_zone_size(ZC)
+        config_size = self.atcab_get_zone_size(ATCA_CONSTANTS.ATCA_ZONE_CONFIG)
 
         # Write config zone excluding UserExtra and Selector
         packets = self.atcab_write_bytes_zone(
-            ZC,
+            ATCA_CONSTANTS.ATCA_ZONE_CONFIG,
             slot=0,
             offset=16,
             data=config_data[16:config_size - 16]
