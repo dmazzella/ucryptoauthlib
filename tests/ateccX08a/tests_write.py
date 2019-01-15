@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 # pylint: disable=E0401
 import logging
-import sys
 
 from ubinascii import hexlify
 
@@ -55,17 +54,23 @@ def run(device=None):
 
     config = memoryview(_TEST_CONFIG[device.device])
 
-    log.debug("test_config for %s dump_configuration: %s", device.device, hexlify(config))
-    ATEC_UTIL.dump_configuration(config, stream=sys.stderr)
+    log.debug("test_config for %s : %s", device.device, hexlify(config))
+    # ATEC_UTIL.dump_configuration(config)
 
-    # try:
-    #     device.atcab_write_config_zone(config)
-    # except ATCA_EXCEPTIONS.CryptoError as ce:
-    #     log.error("atcab_write_config_zone: %s", ce)
+    if not device.atcab_is_locked(ATCA_CONSTANTS.LOCK_ZONE_CONFIG):
+        device.atcab_write_config_zone(config)
+        device.atcab_lock_config_zone()
+    else:
+        log.info("configuration zone locked")
 
-    # public_key = memoryview(_TEST_KEYS["PUBLIC"])
+    if not device.atcab_is_locked(ATCA_CONSTANTS.LOCK_ZONE_DATA):
+        device.atcab_lock_data_zone()
+    else:
+        log.info("data zone locked")
 
-    # try:
-    #     device.atcab_write_pubkey(12, public_key)
-    # except ATCA_EXCEPTIONS.CryptoError as ce:
-    #     log.error("atcab_write_pubkey: %s", ce)
+    slot = 12
+    if not device.atcab_is_slot_locked(slot):
+        public_key = memoryview(_TEST_KEYS["PUBLIC"])
+        device.atcab_write_pubkey(slot, public_key)
+    else:
+        log.info("slot %d locked", slot)

@@ -23,7 +23,7 @@ def test(name="ATECC608A", exclude=[
         # 'random',
         # 'nonce',
         # 'read',
-        'write',
+        # 'write',
         'lock',
         'verify'
     ]):

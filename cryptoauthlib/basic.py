@@ -4,6 +4,8 @@ from cryptoauthlib import exceptions as ATCA_EXCEPTIONS
 from cryptoauthlib import status as ATCA_STATUS
 from cryptoauthlib.packet import ATCAPacket
 
+_ATCA_VERSION = "20190104"
+
 
 class ATECCBasic(object):
     """ ATECCBasic """
@@ -17,6 +19,9 @@ class ATECCBasic(object):
             return ATCA_STATUS.decode_error(data[1])
         else:
             return ATCA_STATUS.ATCA_SUCCESS, None
+
+    def atcab_version(self):
+        return _ATCA_VERSION
 
     def atcab_get_addr(self, zone, slot=0, block=0, offset=0):
         mem_zone = zone & ATCA_CONSTANTS.ATCA_ZONE_MASK
@@ -72,29 +77,77 @@ class ATECCBasic(object):
     #          CryptoAuthLib Basic API methods for CheckMAC command           #
     ###########################################################################
 
+    def atcab_checkmac(self, mode, key_id, challenge, response,  other_data):
+        raise NotImplementedError("atcab_checkmac")
+
     ###########################################################################
     #           CryptoAuthLib Basic API methods for Counter command           #
     ###########################################################################
+
+    def atcab_counter(self, mode, counter_id):
+        raise NotImplementedError("atcab_counter")
+
+    def atcab_counter_increment(self, counter_id):
+        raise NotImplementedError("atcab_counter_increment")
+
+    def atcab_counter_read(self, counter_id):
+        raise NotImplementedError("atcab_counter_read")
 
     ###########################################################################
     #          CryptoAuthLib Basic API methods for DeriveKey command          #
     ###########################################################################
 
+    def atcab_derivekey(self, mode, key_id, mac):
+        raise NotImplementedError("atcab_derivekey")
+
     ###########################################################################
     #            CryptoAuthLib Basic API methods for ECDH command             #
     ###########################################################################
+
+    def atcab_ecdh_base(self, mode, key_id, public_key):
+        raise NotImplementedError("atcab_ecdh_base")
+
+    def atcab_ecdh(self, key_id, public_key):
+        raise NotImplementedError("atcab_ecdh")
+
+    def atcab_ecdh_enc(self, key_id, public_key, read_key, read_key_id):
+        raise NotImplementedError("atcab_ecdh_enc")
+
+    def atcab_ecdh_ioenc(self, key_id, public_key, io_key):
+        raise NotImplementedError("atcab_ecdh_ioenc")
+
+    def atcab_ecdh_tempkey(self, public_key):
+        raise NotImplementedError("atcab_ecdh_tempkey")
+
+    def atcab_ecdh_tempkey_ioenc(self, public_key, io_key):
+        raise NotImplementedError("atcab_ecdh_tempkey_ioenc")
 
     ###########################################################################
     #           CryptoAuthLib Basic API methods for GenDig command            #
     ###########################################################################
 
+    def atcab_gendig(self, zone, key_id, other_data):
+        raise NotImplementedError("atcab_gendig")
+
     ###########################################################################
     #           CryptoAuthLib Basic API methods for GenKey command            #
     ###########################################################################
 
+    def atcab_genkey_base(self, mode, key_id, other_data):
+        raise NotImplementedError("atcab_genkey_base")
+
+    def atcab_genkey(self, key_id):
+        raise NotImplementedError("atcab_genkey")
+
+    def atcab_get_pubkey(self, key_id):
+        raise NotImplementedError("atcab_get_pubkey")
+
     ###########################################################################
     #            CryptoAuthLib Basic API methods for HMAC command             #
     ###########################################################################
+
+    def atcab_hmac(self, mode, key_id):
+        raise NotImplementedError("atcab_hmac")
 
     ###########################################################################
     #            CryptoAuthLib Basic API methods for Info command             #
@@ -114,6 +167,9 @@ class ATECCBasic(object):
     ###########################################################################
     #             CryptoAuthLib Basic API methods for KDF command             #
     ###########################################################################
+
+    def atcab_kdf(self, mode, key_id, details, message):
+        raise NotImplementedError("atcab_kdf")
 
     ###########################################################################
     #             CryptoAuthLib Basic API methods for Lock command            #
@@ -154,6 +210,9 @@ class ATECCBasic(object):
     ###########################################################################
     #             CryptoAuthLib Basic API methods for MAC command             #
     ###########################################################################
+
+    def atcab_mac(self, mode, key_id, challenge):
+        raise NotImplementedError("atcab_mac")
 
     ###########################################################################
     #            CryptoAuthLib Basic API methods for Nonce command            #
@@ -245,6 +304,9 @@ class ATECCBasic(object):
     #          CryptoAuthLib Basic API methods for PrivWrite command          #
     ###########################################################################
 
+    def atcab_priv_write(self, key_id, priv_key, write_key_id, write_key):
+        raise NotImplementedError("atcab_priv_write")
+
     ###########################################################################
     #           CryptoAuthLib Basic API methods for Random command            #
     ###########################################################################
@@ -329,13 +391,16 @@ class ATECCBasic(object):
     def atcab_is_slot_locked(self, slot):
         # Read the word with the lock bytes
         # ( SlotLock[2], RFU[2] ) ( config block = 2, word offset = 6 )
-        return self.atcab_read_zone(
+        packet = self.atcab_read_zone(
             ATCA_CONSTANTS.ATCA_ZONE_CONFIG,
             slot=0,
             block=2,
             offset=6,
             length=ATCA_CONSTANTS.ATCA_WORD_SIZE
         )
+        slot_locked = packet.response_data[0 +
+                                           1] | (packet.response_data[1+1] << 8)
+        return bool((slot_locked & (1 << slot)) == 0)
 
     def atcab_is_locked(self, zone):
         if zone not in (
@@ -346,13 +411,17 @@ class ATECCBasic(object):
 
         # Read the word with the lock bytes
         # (UserExtra, Selector, LockValue, LockConfig) (config block = 2, word offset = 5)
-        return self.atcab_read_zone(
+        packet = self.atcab_read_zone(
             ATCA_CONSTANTS.ATCA_ZONE_CONFIG,
             slot=0,
             block=2,
             offset=5,
             length=ATCA_CONSTANTS.ATCA_WORD_SIZE
         )
+        if zone == ATCA_CONSTANTS.LOCK_ZONE_CONFIG:
+            return bool(packet.response_data[3+1] != 0x55)
+        elif zone == ATCA_CONSTANTS.LOCK_ZONE_DATA:
+            return bool(packet.response_data[2+1] != 0x55)
 
     def atcab_read_config_zone(self):
         return self.atcab_read_bytes_zone(
@@ -370,21 +439,53 @@ class ATECCBasic(object):
         raise NotImplementedError("atcab_read_sig")
 
     def atcab_read_pubkey(self, slot):
-        raise NotImplementedError("atcab_read_pubkey")
+        # Check the value of the slot. Only slots 8 to 15 are large enough to store a public key
+        if slot < 8 or slot > 15:
+            raise ATCA_EXCEPTIONS.BadArgumentError(
+                "Only slots 8 to 15 are large enough to store a public key")
+
+        # The 64 byte P256 public key gets written to a 72 byte slot in the following pattern
+        #
+        # | Block 1                     | Block 2                                      | Block 3       |
+        # | Pad: 4 Bytes | PubKey[0:27] | PubKey[28:31] | Pad: 4 Bytes | PubKey[32:55] | PubKey[56:63] |
+
+        ZD = ATCA_CONSTANTS.ATCA_ZONE_DATA
+        BS = ATCA_CONSTANTS.ATCA_BLOCK_SIZE
+        PKD = ATCA_CONSTANTS.ATCA_PUB_KEY_PAD
+        KS = ATCA_CONSTANTS.ATCA_KEY_SIZE
+
+        public_key = b''
+        packet = self.atcab_read_zone(ZD, slot=slot, block=0, length=BS)
+        public_key += packet.response_data[1:-2]
+        packet = self.atcab_read_zone(ZD, slot=slot, block=1, length=BS)
+        public_key += packet.response_data[1:-2]
+        packet = self.atcab_read_zone(ZD, slot=slot, block=2, length=BS)
+        public_key += packet.response_data[1:-2]
+
+        return public_key[PKD:PKD+KS] + public_key[KS+PKD+PKD:KS+PKD+PKD+KS]
 
     ###########################################################################
     #          CryptoAuthLib Basic API methods for SecureBoot command         #
     ###########################################################################
 
+    def atcab_secureboot(self, mode, param2, digest, signature):
+        raise NotImplementedError("atcab_secureboot")
+
+    def atcab_secureboot_mac(self, mode, digest, signature, num_in, io_key):
+        raise NotImplementedError("atcab_secureboot_mac")
+
     ###########################################################################
     #           CryptoAuthLib Basic API methods for SelfTest command          #
     ###########################################################################
+
+    def atcab_selftest(self, mode, param2):
+        raise NotImplementedError("atcab_selftest")
 
     ###########################################################################
     #            CryptoAuthLib Basic API methods for SHA command              #
     ###########################################################################
 
-    def atcab_sha_base(self, mode=0, data=b''):
+    def atcab_sha_base(self, mode=0, data=b'', key_slot=None):
         if not isinstance(data, (bytes, bytearray, memoryview)):
             raise ATCA_EXCEPTIONS.BadArgumentError()
 
@@ -409,7 +510,7 @@ class ATECCBasic(object):
             txsize=txsize,
             opcode=ATCA_CONSTANTS.ATCA_SHA,
             param1=mode,
-            param2=len(data),
+            param2=len(data) if not isinstance(key_slot, int) else key_slot,
             request_data=data
         )
         self.execute(packet)
@@ -429,9 +530,21 @@ class ATECCBasic(object):
         packet = self.atcab_sha_base(m, b)
         return packet
 
+    def atcab_sha_hmac(self, data, key_slot, target):
+        raise NotImplementedError("atcab_sha_hmac")
+
     ###########################################################################
     #            CryptoAuthLib Basic API methods for Sign command             #
     ###########################################################################
+
+    def atcab_sign_base(self, mode, key_id):
+        raise NotImplementedError("atcab_sign_base")
+
+    def atcab_sign(self, key_id, msg):
+        raise NotImplementedError("atcab_sign")
+
+    def atcab_sign_internal(self, key_id, is_invalidate, is_full_sn):
+        raise NotImplementedError("atcab_sign_internal")
 
     ###########################################################################
     #         CryptoAuthLib Basic API methods for UpdateExtra command         #
@@ -579,7 +692,8 @@ class ATECCBasic(object):
 
         # Check the value of the slot. Only slots 8 to 15 are large enough to store a public key
         if slot < 8 or slot > 15:
-            raise ATCA_EXCEPTIONS.BadArgumentError("Only slots 8 to 15 are large enough to store a public key")
+            raise ATCA_EXCEPTIONS.BadArgumentError(
+                "Only slots 8 to 15 are large enough to store a public key")
 
         public_key_formatted = bytearray(72)
 

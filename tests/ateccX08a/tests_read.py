@@ -1,20 +1,13 @@
 # -*- coding: utf-8 -*-
 # pylint: disable=E0401
 import logging
-import sys
 from ubinascii import hexlify
 from uio import BytesIO, StringIO
 
-from cryptoauthlib.constant import (
-    ATCA_ZONE_CONFIG,
-    ATCA_ECC_CONFIG_SIZE,
-    LOCK_ZONE_CONFIG,
-    LOCK_ZONE_DATA
-)
+from cryptoauthlib import constant as ATCA_CONSTANTS
 from cryptoauthlib import util as ATEC_UTIL
 
 log = logging.getLogger("ateccX08a.tests_read")
-
 
 def run(device=None):
     if not device:
@@ -30,25 +23,18 @@ def run(device=None):
     config = b''.join([bytes(packet.response_data[1:-2])
                        for packet in packets])
     log.debug("atcab_read_config_zone %d: %s", len(config), hexlify(config))
-    log.debug("atcab_read_config_zone dump_configuration:")
-    ATEC_UTIL.dump_configuration(config, stream=sys.stderr)
+    # ATEC_UTIL.dump_configuration(config)
 
     for slot in range(16):
-        packet = device.atcab_is_slot_locked(slot)
-        slot_locked = (
-            packet.response_data[0+1]) | ((packet.response_data[1+1]) << 8)
-        locked = bool((slot_locked & (1 << slot)) == 0)
-        log.debug("atcab_is_slot_locked %d: %r %s", slot,
-                  locked, hexlify(packet.response_data))
+        slot_locked = device.atcab_is_slot_locked(slot)
+        log.debug("atcab_is_slot_locked %d: %s", slot, slot_locked)
 
-    for zone in (LOCK_ZONE_CONFIG, LOCK_ZONE_DATA):
-        packet = device.atcab_is_locked(zone)
-        locked = False
-        if zone == LOCK_ZONE_CONFIG:
-            zone_str = "LOCK_ZONE_CONFIG"
-            locked = bool(packet.response_data[3+1] != 0x55)
-        elif zone == LOCK_ZONE_DATA:
-            zone_str = "LOCK_ZONE_DATA"
-            locked = bool(packet.response_data[2+1] != 0x55)
-        log.debug("atcab_is_locked: %s %r %s", zone_str,
-                  locked, hexlify(packet.response_data))
+    locked_config = device.atcab_is_locked(ATCA_CONSTANTS.LOCK_ZONE_CONFIG)
+    log.debug("atcab_is_locked LOCK_ZONE_CONFIG: %r", locked_config)
+
+    locked_data = device.atcab_is_locked(ATCA_CONSTANTS.LOCK_ZONE_DATA)
+    log.debug("atcab_is_locked LOCK_ZONE_DATA: %r", locked_data)
+
+    slot = 12
+    public_key = device.atcab_read_pubkey(slot)
+    log.debug("atcab_read_pubkey slot %d: %s", slot, hexlify(public_key))
