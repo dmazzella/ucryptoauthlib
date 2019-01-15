@@ -37,6 +37,13 @@ class ParseError(CryptoError):
             *args
         )
 
+class WatchDogAboutToExpireError(CryptoError):
+    def __init__(self, *args):
+        super().__init__(
+            "response status indicate insufficient time to execute the given "
+            "commmand begore watchdog timer will expire (status byte = 0xEE)",
+            *args
+        )
 
 class CrcError(CryptoError):
     def __init__(self, *args):

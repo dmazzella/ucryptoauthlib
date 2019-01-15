@@ -76,6 +76,8 @@ ATCA_NO_DEVICES = const(0xF9)
 ATCA_HEALTH_TEST_ERROR = const(0xFA)
 # Couldn't allocate required memory
 ATCA_ALLOC_FAILURE = const(0xFB)
+# Watchdog about to expire
+ATCA_WATCHDOG_ABOUT_TO_EXPIRE = const(0xEE)
 
 
 def decode_error(error):
@@ -88,5 +90,6 @@ def decode_error(error):
         0x08: (ATCA_HEALTH_TEST_ERROR, ATCA_EXECUTIONS.HealthTestError),
         0x0F: (ATCA_EXECUTION_ERROR, ATCA_EXECUTIONS.ExecutionError),
         0x11: (ATCA_WAKE_SUCCESS, None),
+        0xEE: (ATCA_WATCHDOG_ABOUT_TO_EXPIRE, ATCA_EXECUTIONS.WatchDogAboutToExpireError),
         0xFF: (ATCA_STATUS_CRC, ATCA_EXECUTIONS.CrcError),
     }.get(error, (ATCA_GEN_FAIL, ATCA_EXECUTIONS.GenericError))

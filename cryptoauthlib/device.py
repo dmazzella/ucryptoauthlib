@@ -64,31 +64,43 @@ class ATECCX08A(ATECCBasic):
         self._bus.writeto(self._address, b'\x01')
 
     def execute(self, packet):
-        self.wake()
-        # Wait tWHI + tWLO
-        utime.sleep_us(WAKE_DELAY)
 
-        # Set device name
-        packet.device = self._device
+        while self._retries:
+            try:
+                self.wake()
+                # Wait tWHI + tWLO
+                utime.sleep_us(WAKE_DELAY)
 
-        # Send the command
-        self._bus.writeto(self._address, b'\x03' + packet.to_buffer())
+                # Set device name
+                packet.device = self._device
 
-        # Delay for execution time
-        utime.sleep_ms(packet.delay)
+                # Send the command
+                self._bus.writeto(self._address, b'\x03' + packet.to_buffer())
 
-        response = packet.response_data_mv
+                # Delay for execution time
+                utime.sleep_ms(packet.delay)
 
-        # Receive the response
-        self._bus.readfrom_into(self._address, response[0:1])
-        self._bus.readfrom_into(self._address, response[1:response[0]])
-        
-        # Check response
-        err, exc = self.is_error(response)
-        if err == ATCA_STATUS.ATCA_SUCCESS:
-            packet.response_data = response[:response[0]]
-        elif err == ATCA_STATUS.ATCA_WAKE_SUCCESS:
-            pass
+                response = packet.response_data_mv
+
+                # Receive the response
+                self._bus.readfrom_into(self._address, response[0:1])
+                self._bus.readfrom_into(self._address, response[1:response[0]])
+
+                # Check response
+                err, exc = self.is_error(response)
+                if err == ATCA_STATUS.ATCA_SUCCESS:
+                    packet.response_data = response[:response[0]]
+                    self._retries = RX_RETRIES
+                    return
+                elif err == ATCA_STATUS.ATCA_WAKE_SUCCESS:
+                    return
+                elif err == ATCA_STATUS.ATCA_WATCHDOG_ABOUT_TO_EXPIRE:
+                    self.sleep()
+                else:
+                    if exc is not None:
+                        raise exc(ubinascii.hexlify(response))
+            except OSError:
+                self._retries -= 1
         else:
-            if exc is not None:
-                raise exc(ubinascii.hexlify(response))
+            self._retries = RX_RETRIES
+            raise ATCA_EXECUTIONS.GenericError("max retry")
