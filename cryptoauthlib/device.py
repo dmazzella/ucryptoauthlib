@@ -65,7 +65,8 @@ class ATECCX08A(ATECCBasic):
 
     def execute(self, packet):
 
-        while self._retries:
+        retries = self._retries
+        while retries:
             try:
                 self.wake()
                 # Wait tWHI + tWLO
@@ -90,7 +91,6 @@ class ATECCX08A(ATECCBasic):
                 err, exc = self.is_error(response)
                 if err == ATCA_STATUS.ATCA_SUCCESS:
                     packet.response_data = response[:response[0]]
-                    self._retries = RX_RETRIES
                     return
                 elif err == ATCA_STATUS.ATCA_WAKE_SUCCESS:
                     return
@@ -100,7 +100,6 @@ class ATECCX08A(ATECCBasic):
                     if exc is not None:
                         raise exc(ubinascii.hexlify(response))
             except OSError:
-                self._retries -= 1
+                retries -= 1
         else:
-            self._retries = RX_RETRIES
             raise ATCA_EXECUTIONS.GenericError("max retry")
