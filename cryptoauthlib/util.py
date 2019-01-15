@@ -1,10 +1,8 @@
 # -*- coding: utf-8 -*-
 # pylint: disable=E0401
+import sys
 import uctypes
 from ubinascii import hexlify
-
-from uio import BytesIO, StringIO
-
 
 """
 SlotConfig (Bytes 20 to 51)
@@ -42,6 +40,7 @@ SLOT_CONFIG_STRUCT = {
     "WriteConfig": uctypes.BFUINT32 | 0 | 12 << uctypes.BF_POS | 4 << uctypes.BF_LEN
 }
 
+
 def dump_slot(slot, index=None, stream=None):
     slot_stuct = uctypes.struct(
         uctypes.addressof(slot),
@@ -50,7 +49,7 @@ def dump_slot(slot, index=None, stream=None):
     )
 
     if not stream:
-        stream = StringIO()
+        stream = sys.stderr
 
     index_s = "[{:d}]".format(index) if isinstance(index, int) else ""
 
@@ -62,7 +61,7 @@ def dump_slot(slot, index=None, stream=None):
     stream.write("IsSecret({:d})".format(slot_stuct.IsSecret))
     stream.write("WriteKey({:04b})".format(slot_stuct.WriteKey))
     stream.write("WriteConfig({:04b})\n".format(slot_stuct.WriteConfig))
-    return stream
+    return stream if stream not in (sys.stderr, sys.stdout) else None
 
 
 """
@@ -109,6 +108,7 @@ KEY_CONFIG_STRUCT = {
     "X509id": uctypes.BFUINT32 | 0 | 14 << uctypes.BF_POS | 2 << uctypes.BF_LEN
 }
 
+
 def dump_key(key, index=None, stream=None):
     key_stuct = uctypes.struct(
         uctypes.addressof(key),
@@ -117,7 +117,7 @@ def dump_key(key, index=None, stream=None):
     )
 
     if not stream:
-        stream = StringIO()
+        stream = sys.stderr
 
     index_k = "[{:d}]".format(index) if isinstance(index, int) else ""
 
@@ -132,7 +132,7 @@ def dump_key(key, index=None, stream=None):
     stream.write("IntrusionDisable({:d})" .format(key_stuct.IntrusionDisable))
     stream.write("RFU({:d})".format(key_stuct.RFU))
     stream.write("X509id({:02b})\n".format(key_stuct.X509id))
-    return stream
+    return stream if stream not in (sys.stderr, sys.stdout) else None
 
 
 def dump_configuration(configuration, stream=None):
@@ -143,7 +143,7 @@ def dump_configuration(configuration, stream=None):
         raise ValueError("expected: 128 got: {:d}".format(len(configuration)))
 
     if not stream:
-        stream = StringIO()
+        stream = sys.stderr
 
     c = memoryview(configuration)
 
@@ -180,4 +180,4 @@ def dump_configuration(configuration, stream=None):
     stream.write("KeyConfig:\n")
     for idx, key_buf in enumerate(range(0, 32, 2)):
         dump_key(KeyConfig[key_buf:key_buf+2], index=idx, stream=stream)
-    return stream
+    return stream if stream not in (sys.stderr, sys.stdout) else None
