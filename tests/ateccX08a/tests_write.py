@@ -45,17 +45,28 @@ _TEST_KEYS = {
         0XDA, 0X3C, 0X14, 0X46, 0X68, 0X2C, 0X25, 0X8C, 0X46, 0X3F, 0XFF, 0XDF, 0X58, 0XDF, 0XD2, 0XFA,
         0X3E, 0X6C, 0X37, 0X8B, 0X53, 0XD7, 0X95, 0XC4, 0XA4, 0XDF, 0XFB, 0X41, 0X99, 0XED, 0XD7, 0X86,
         0X2F, 0X23, 0XAB, 0XAF, 0X02, 0X03, 0XB4, 0XB8, 0X91, 0X1B, 0XA0, 0X56, 0X99, 0X94, 0XE1, 0X01
-    ])
+    ]),
+    "MESSAGE": b'a message to sign via ECDSA     ',
+    "SIGNATURE": {
+        "R": bytes([
+            0X71, 0X07, 0X7D, 0X35, 0X6F, 0XCD, 0X70, 0XD4, 0XCC, 0X47, 0X2A, 0XD0, 0X49, 0X0E, 0X75, 0XAB,
+            0XC5, 0X41, 0X98, 0XEE, 0X6A, 0X96, 0X7B, 0X90, 0XF2, 0XC7, 0XE3, 0XC8, 0X2B, 0XBF, 0X54, 0X96
+        ]),
+        "S": bytes([
+            0X77, 0X8E, 0XFE, 0X0B, 0XF6, 0X9D, 0X15, 0XED, 0XA0, 0X71, 0XBD, 0XD3, 0XFE, 0X46, 0X99, 0X26,
+            0X31, 0XF8, 0X80, 0X01, 0X13, 0X76, 0XCD, 0X45, 0X7C, 0X62, 0X55, 0X43, 0XC9, 0X7F, 0XCC, 0XD9
+        ])
+    }
 }
 
 def run(device=None):
     if not device:
         raise ValueError("device")
 
-    config = memoryview(_TEST_CONFIG[device.device])
+    config = _TEST_CONFIG[device.device]
 
     log.debug("test_config for %s : %s", device.device, hexlify(config))
-    # ATEC_UTIL.dump_configuration(config)
+    ATEC_UTIL.dump_configuration(config)
 
     if not device.atcab_is_locked(ATCA_CONSTANTS.LOCK_ZONE_CONFIG):
         device.atcab_write_config_zone(config)
@@ -68,9 +79,19 @@ def run(device=None):
     else:
         log.info("data zone locked")
 
-    slot = 12
+    slot = 11
     if not device.atcab_is_slot_locked(slot):
-        public_key = memoryview(_TEST_KEYS["PUBLIC"])
-        device.atcab_write_pubkey(slot, public_key)
+        public_key = _TEST_KEYS["PUBLIC"]
+        message = _TEST_KEYS["MESSAGE"]
+        packet = device.atcab_sha(message)
+        message_digest = packet.response_data[1:-2]
+        signature = _TEST_KEYS["SIGNATURE"]["R"] + _TEST_KEYS["SIGNATURE"]["S"]
+        # # write public_key to slot
+        # device.atcab_write_pubkey(slot, public_key)
+        # # verify wrote public_key
+        # assert public_key == device.atcab_read_pubkey(slot)
+        # # verify the signature
+        packets = device.atcab_verify_extern(message_digest, signature, public_key)
+        log.info("atcab_verify_stored %s", list(map(str, packets)))
     else:
         log.info("slot %d locked", slot)
