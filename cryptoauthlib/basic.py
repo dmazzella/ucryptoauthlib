@@ -10,6 +10,8 @@ _ATCA_VERSION = "20190104"
 class ATECCBasic(object):
     """ ATECCBasic """
 
+    _device = None
+
     def execute(self, packet):
         """ Abstract execute method """
         raise NotImplementedError()
@@ -563,17 +565,120 @@ class ATECCBasic(object):
     #            CryptoAuthLib Basic API methods for Verify command           #
     ###########################################################################
 
-    def atcab_verify(self, mode, key_id, signature, public_key, other_data, mac):
-        raise NotImplementedError("atcab_verify")
+    def atcab_verify(self, mode, key_id, signature, public_key=None, other_data=None, mac=None):
+        if not isinstance(signature, (bytes, bytearray, memoryview)):
+            raise ATCA_EXCEPTIONS.BadArgumentError()
 
-    def atcab_verify_extern(self, message, signature, public_key, is_verified):
-        raise NotImplementedError("atcab_verify_extern")
+        verify_mode = (mode & ATCA_CONSTANTS.VERIFY_MODE_MASK)
+
+        VME = ATCA_CONSTANTS.VERIFY_MODE_EXTERNAL
+        has_public_key = isinstance(public_key, (bytes, bytearray, memoryview))
+        if verify_mode == VME and not has_public_key:
+            raise ATCA_EXCEPTIONS.BadArgumentError()
+
+        VMV = ATCA_CONSTANTS.VERIFY_MODE_VALIDATE
+        VMI = ATCA_CONSTANTS.VERIFY_MODE_INVALIDATE
+        has_other_data = isinstance(other_data, (bytes, bytearray, memoryview))
+        if verify_mode in (VMV, VMI) and not has_other_data:
+            raise ATCA_EXCEPTIONS.BadArgumentError()
+
+        txsize = 0
+        if verify_mode == ATCA_CONSTANTS.VERIFY_MODE_STORED:
+            txsize = ATCA_CONSTANTS.VERIFY_256_STORED_COUNT
+        elif verify_mode in (ATCA_CONSTANTS.VERIFY_MODE_VALIDATE_EXTERNAL,
+                             ATCA_CONSTANTS.VERIFY_MODE_EXTERNAL):
+            txsize = ATCA_CONSTANTS.VERIFY_256_EXTERNAL_COUNT
+        elif verify_mode in (ATCA_CONSTANTS.VERIFY_MODE_VALIDATE,
+                             ATCA_CONSTANTS.VERIFY_MODE_INVALIDATE):
+            txsize = ATCA_CONSTANTS.VERIFY_256_VALIDATE_COUNT
+
+        SS = ATCA_CONSTANTS.ATCA_SIG_SIZE
+        PKS = ATCA_CONSTANTS.ATCA_PUB_KEY_SIZE
+        VODS = ATCA_CONSTANTS.VERIFY_OTHER_DATA_SIZE
+        data_size = SS
+        if has_public_key:
+            data_size += PKS
+        elif has_other_data:
+            data_size += VODS
+
+        data = bytearray(data_size)
+
+        data[0:SS] = signature
+        if has_public_key:
+            data[SS:SS+PKS] = public_key
+        elif has_other_data:
+            data[SS:SS+VODS] = other_data
+
+        packet = ATCAPacket(
+            txsize=txsize,
+            opcode=ATCA_CONSTANTS.ATCA_VERIFY,
+            param1=mode,
+            param2=key_id,
+            request_data=data
+        )
+        self.execute(packet)
+        return packet
+
+    def atcab_verify_extern(self, message, signature, public_key):
+        if not isinstance(message, (bytes, bytearray, memoryview)):
+            raise ATCA_EXCEPTIONS.BadArgumentError()
+
+        if not isinstance(signature, (bytes, bytearray, memoryview)):
+            raise ATCA_EXCEPTIONS.BadArgumentError()
+
+        if not isinstance(public_key, (bytes, bytearray, memoryview)):
+            raise ATCA_EXCEPTIONS.BadArgumentError()
+
+        nonce_target = ATCA_CONSTANTS.NONCE_MODE_TARGET_TEMPKEY
+        verify_source = ATCA_CONSTANTS.VERIFY_MODE_SOURCE_TEMPKEY
+
+        # Load message into device
+        if self._device == "ATECC608A":
+            # Use the Message Digest Buffer for the ATECC608A
+            nonce_target = ATCA_CONSTANTS.NONCE_MODE_TARGET_MSGDIGBUF
+            verify_source = ATCA_CONSTANTS.VERIFY_MODE_SOURCE_MSGDIGBUF
+
+        packets = []
+        packet = self.atcab_nonce_load(nonce_target, message)
+        packets.append(packet)
+        packet = self.atcab_verify(
+            ATCA_CONSTANTS.VERIFY_MODE_EXTERNAL | verify_source,
+            ATCA_CONSTANTS.VERIFY_KEY_P256,
+            signature,
+            public_key
+        )
+        packets.append(packet)
+        return packets
 
     def atcab_verify_extern_mac(self, message, signature, public_key, num_in, io_key, is_verified):
         raise NotImplementedError("atcab_verify_extern_mac")
 
-    def atcab_verify_stored(self, message, signature, key_id, is_verified):
-        raise NotImplementedError("atcab_verify_stored")
+    def atcab_verify_stored(self, message, signature, key_id):
+        if not isinstance(message, (bytes, bytearray, memoryview)):
+            raise ATCA_EXCEPTIONS.BadArgumentError()
+
+        if not isinstance(signature, (bytes, bytearray, memoryview)):
+            raise ATCA_EXCEPTIONS.BadArgumentError()
+
+        nonce_target = ATCA_CONSTANTS.NONCE_MODE_TARGET_TEMPKEY
+        verify_source = ATCA_CONSTANTS.VERIFY_MODE_SOURCE_TEMPKEY
+
+        # Load message into device
+        if self._device == "ATECC608A":
+            # Use the Message Digest Buffer for the ATECC608A
+            nonce_target = ATCA_CONSTANTS.NONCE_MODE_TARGET_MSGDIGBUF
+            verify_source = ATCA_CONSTANTS.VERIFY_MODE_SOURCE_MSGDIGBUF
+
+        packets = []
+        packet = self.atcab_nonce_load(nonce_target, message)
+        packets.append(packet)
+        packet = self.atcab_verify(
+            ATCA_CONSTANTS.VERIFY_MODE_STORED | verify_source,
+            key_id,
+            signature
+        )
+        packets.append(packet)
+        return packets
 
     def atcab_verify_stored_mac(self, message, signature, key_id, num_in, io_key, is_verified):
         raise NotImplementedError("atcab_verify_stored_mac")

@@ -98,7 +98,7 @@ class ATECCX08A(ATECCBasic):
                     self.sleep()
                 else:
                     if exc is not None:
-                        raise exc(ubinascii.hexlify(response))
+                        raise exc(ubinascii.hexlify(response[:response[0]]))
             except OSError:
                 retries -= 1
         else:
