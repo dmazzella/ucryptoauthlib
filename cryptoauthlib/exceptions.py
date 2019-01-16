@@ -23,7 +23,7 @@ class WakeFailedError(CryptoError):
 class CheckmacVerifyFailedError(CryptoError):
     def __init__(self, *args):
         super().__init__(
-            "response status byte indicates CheckMac failure "
+            "response status byte indicates CheckMac/Verify failure "
             "(status byte = 0x01)",
             *args
         )
@@ -193,7 +193,7 @@ class BadOpcodeError(CryptoError):
 class ExecutionError(CryptoError):
     def __init__(self, *args):
         super().__init__(
-            "chip was in a state where it could not execute the command, response"
+            "chip was in a state where it could not execute the command, response "
             "status byte indicates command execution error (status byte = 0x0F)",
             *args
         )
