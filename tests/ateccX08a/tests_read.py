@@ -35,6 +35,6 @@ def run(device=None):
     locked_data = device.atcab_is_locked(ATCA_CONSTANTS.LOCK_ZONE_DATA)
     log.debug("atcab_is_locked LOCK_ZONE_DATA: %r", locked_data)
 
-    slot = 12
+    slot = 11
     public_key = device.atcab_read_pubkey(slot)
     log.debug("atcab_read_pubkey slot %d: %s", slot, hexlify(public_key))
