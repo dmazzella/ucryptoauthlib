@@ -18,7 +18,7 @@ Usage
 ```python
 MicroPython v1.9.4-679-ge328a5d46-dirty on 2018-10-29; PYBv1.1 with STM32F405RG
 Type "help()" for more information.
->>> import ateccX08a; ateccX08a.test("ATECC608A")
+>>> import ateccX08a; ateccX08a.test()
 INFO:ateccX08a <ATECCX08A address=0x60 retries=20 device=ATECC608A>
 INFO:ateccX08a INFO SUCCEDED
 INFO:ateccX08a SHA SUCCEDED
@@ -52,10 +52,13 @@ Software
 Currently supported commands are:
 
 - INFO
-- SHA
-- RANDOM
+- LOCK
 - NONCE
+- RANDOM
 - READ (1)
+- SHA (1)
+- WRITE (1)
+- VERIFY (1)
 
   (1) Not all features are implemented
 
