@@ -59,6 +59,7 @@ _TEST_KEYS = {
     }
 }
 
+
 def run(device=None):
     if not device:
         raise ValueError("device")
@@ -82,19 +83,9 @@ def run(device=None):
     slot = 11
     if not device.atcab_is_slot_locked(slot):
         public_key = _TEST_KEYS["PUBLIC"]
-        message = _TEST_KEYS["MESSAGE"]
-        packet = device.atcab_sha(message)
-        message_digest = packet.response_data[1:-2]
-        signature = _TEST_KEYS["SIGNATURE"]["R"] + _TEST_KEYS["SIGNATURE"]["S"]
         # # write public_key to slot
         device.atcab_write_pubkey(slot, public_key)
         # # verify wrote public_key
         assert public_key == device.atcab_read_pubkey(slot)
-        # # verify the signature
-        verified = device.atcab_verify_extern(message_digest, signature, public_key)
-        log.info("atcab_verify_extern %r", verified)
-
-        verified = device.atcab_verify_stored(message, signature, slot)
-        log.info("atcab_verify_stored %r", verified)
     else:
         log.info("slot %d locked", slot)
