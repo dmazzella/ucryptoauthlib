@@ -110,7 +110,7 @@ class ATCAPacket(object):
         params += self.at_crc(params)
         return params
 
-    @micropython.native
+    # @micropython.native
     def at_crc(self, data, polynom=0x8005):
         crc = 0
         for d in data:
