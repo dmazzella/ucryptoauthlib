@@ -66,7 +66,7 @@ def run(device=None):
     config = _TEST_CONFIG[device.device]
 
     log.debug("test_config for %s : %s", device.device, hexlify(config))
-    ATEC_UTIL.dump_configuration(config)
+    # ATEC_UTIL.dump_configuration(config)
 
     if not device.atcab_is_locked(ATCA_CONSTANTS.LOCK_ZONE_CONFIG):
         device.atcab_write_config_zone(config)
@@ -87,11 +87,14 @@ def run(device=None):
         message_digest = packet.response_data[1:-2]
         signature = _TEST_KEYS["SIGNATURE"]["R"] + _TEST_KEYS["SIGNATURE"]["S"]
         # # write public_key to slot
-        # device.atcab_write_pubkey(slot, public_key)
+        device.atcab_write_pubkey(slot, public_key)
         # # verify wrote public_key
-        # assert public_key == device.atcab_read_pubkey(slot)
+        assert public_key == device.atcab_read_pubkey(slot)
         # # verify the signature
-        packets = device.atcab_verify_extern(message_digest, signature, public_key)
-        log.info("atcab_verify_stored %s", list(map(str, packets)))
+        verified = device.atcab_verify_extern(message_digest, signature, public_key)
+        log.info("atcab_verify_extern %r", verified)
+
+        verified = device.atcab_verify_stored(message, signature, slot)
+        log.info("atcab_verify_stored %r", verified)
     else:
         log.info("slot %d locked", slot)

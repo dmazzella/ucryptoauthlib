@@ -638,17 +638,14 @@ class ATECCBasic(object):
             nonce_target = ATCA_CONSTANTS.NONCE_MODE_TARGET_MSGDIGBUF
             verify_source = ATCA_CONSTANTS.VERIFY_MODE_SOURCE_MSGDIGBUF
 
-        packets = []
-        packet = self.atcab_nonce_load(nonce_target, message)
-        packets.append(packet)
+        self.atcab_nonce_load(nonce_target, message)
         packet = self.atcab_verify(
             ATCA_CONSTANTS.VERIFY_MODE_EXTERNAL | verify_source,
             ATCA_CONSTANTS.VERIFY_KEY_P256,
             signature,
             public_key
         )
-        packets.append(packet)
-        return packets
+        return packet.response_data[1] == ATCA_STATUS.ATCA_SUCCESS
 
     def atcab_verify_extern_mac(self, message, signature, public_key, num_in, io_key, is_verified):
         raise NotImplementedError("atcab_verify_extern_mac")
@@ -669,16 +666,13 @@ class ATECCBasic(object):
             nonce_target = ATCA_CONSTANTS.NONCE_MODE_TARGET_MSGDIGBUF
             verify_source = ATCA_CONSTANTS.VERIFY_MODE_SOURCE_MSGDIGBUF
 
-        packets = []
-        packet = self.atcab_nonce_load(nonce_target, message)
-        packets.append(packet)
+        self.atcab_nonce_load(nonce_target, message)
         packet = self.atcab_verify(
             ATCA_CONSTANTS.VERIFY_MODE_STORED | verify_source,
             key_id,
             signature
         )
-        packets.append(packet)
-        return packets
+        return packet.response_data[1] == ATCA_STATUS.ATCA_SUCCESS
 
     def atcab_verify_stored_mac(self, message, signature, key_id, num_in, io_key, is_verified):
         raise NotImplementedError("atcab_verify_stored_mac")
