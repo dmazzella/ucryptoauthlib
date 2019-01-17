@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
 # pylint: disable=E0401
+import micropython
 import ustruct
 import utime
 from ubinascii import hexlify
 from cryptoauthlib import constant as ATCA
-from micropython import const
 
 
 class ATCAPacket(object):
@@ -51,6 +51,9 @@ class ATCAPacket(object):
             hexlify(self.request_data),
             hexlify(self.response_data)
         )
+
+    def __getitem__(self, i):
+        return self._response_data[i]
 
     def __getattr__(self, name):
         if name == "txsize":
@@ -107,6 +110,7 @@ class ATCAPacket(object):
         params += self.at_crc(params)
         return params
 
+    @micropython.native
     def at_crc(self, data, polynom=0x8005):
         crc = 0
         for d in data:

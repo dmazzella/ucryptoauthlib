@@ -15,7 +15,8 @@ I2C_ADDRESS = micropython.const(0xC0 >> 1)
 BAUDRATE = micropython.const(160000)
 WAKE_DELAY = micropython.const(150)
 RX_RETRIES = micropython.const(20)
-SUPPORTED_DEVICES = ("ATECC508A", "ATECC608A")
+SUPPORTED_DEVICES = {0x50: "ATECC508A", 0x60: "ATECC608A"}
+
 
 class ATECCX08A(ATECCBasic):
     """ ATECCX08A over I2C """
@@ -23,24 +24,18 @@ class ATECCX08A(ATECCBasic):
     def __init__(
             self,
             bus=machine.I2C(1, freq=BAUDRATE),
-            address=I2C_ADDRESS, retries=RX_RETRIES,
-            device="ATECC508A"):
+            address=I2C_ADDRESS, retries=RX_RETRIES):
 
         if address not in bus.scan():
             raise ATCA_EXECUTIONS.NoDevicesFoundError()
 
-        if device not in SUPPORTED_DEVICES:
-            raise ATCA_EXECUTIONS.UnsupportedDeviceError(
-                "ATECCX08A expected: {!s} got: {:s}".format(
-                    SUPPORTED_DEVICES,
-                    device
-                )
-            )
-
         self._bus = bus
         self._address = address
         self._retries = retries
-        self._device = device
+        try:
+            self._device = SUPPORTED_DEVICES[self.atcab_info()[1+2]]
+        except KeyError:
+            raise ATCA_EXECUTIONS.UnsupportedDeviceError()
 
     def __str__(self):
         return "<{:s} address=0x{:02x} retries={:d} device={:s}>".format(
@@ -90,7 +85,7 @@ class ATECCX08A(ATECCBasic):
                 # Check response
                 err, exc = self.is_error(response)
                 if err == ATCA_STATUS.ATCA_SUCCESS:
-                    packet.response_data = response[:response[0]]
+                    packet._response_data = response[:response[0]]
                     return
                 elif err == ATCA_STATUS.ATCA_WAKE_SUCCESS:
                     return

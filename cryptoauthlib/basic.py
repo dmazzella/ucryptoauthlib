@@ -400,9 +400,7 @@ class ATECCBasic(object):
             offset=6,
             length=ATCA_CONSTANTS.ATCA_WORD_SIZE
         )
-        slot_locked = packet.response_data[0 +
-                                           1] | (packet.response_data[1+1] << 8)
-        return bool((slot_locked & (1 << slot)) == 0)
+        return bool((packet[0+1] | (packet[1+1] << 8) & (1 << slot)) == 0)
 
     def atcab_is_locked(self, zone):
         if zone not in (
@@ -421,9 +419,9 @@ class ATECCBasic(object):
             length=ATCA_CONSTANTS.ATCA_WORD_SIZE
         )
         if zone == ATCA_CONSTANTS.LOCK_ZONE_CONFIG:
-            return bool(packet.response_data[3+1] != 0x55)
+            return bool(packet[3+1] != 0x55)
         elif zone == ATCA_CONSTANTS.LOCK_ZONE_DATA:
-            return bool(packet.response_data[2+1] != 0x55)
+            return bool(packet[2+1] != 0x55)
 
     def atcab_read_config_zone(self):
         return self.atcab_read_bytes_zone(
@@ -458,11 +456,11 @@ class ATECCBasic(object):
 
         public_key = b''
         packet = self.atcab_read_zone(ZD, slot=slot, block=0, length=BS)
-        public_key += packet.response_data[1:-2]
+        public_key += packet[1:-2]
         packet = self.atcab_read_zone(ZD, slot=slot, block=1, length=BS)
-        public_key += packet.response_data[1:-2]
+        public_key += packet[1:-2]
         packet = self.atcab_read_zone(ZD, slot=slot, block=2, length=BS)
-        public_key += packet.response_data[1:-2]
+        public_key += packet[1:-2]
 
         return public_key[PKD:PKD+KS] + public_key[KS+PKD+PKD:KS+PKD+PKD+KS]
 
@@ -645,7 +643,7 @@ class ATECCBasic(object):
             signature,
             public_key
         )
-        return packet.response_data[1] == ATCA_STATUS.ATCA_SUCCESS
+        return packet[1] == ATCA_STATUS.ATCA_SUCCESS
 
     def atcab_verify_extern_mac(self, message, signature, public_key, num_in, io_key, is_verified):
         raise NotImplementedError("atcab_verify_extern_mac")
@@ -672,7 +670,7 @@ class ATECCBasic(object):
             key_id,
             signature
         )
-        return packet.response_data[1] == ATCA_STATUS.ATCA_SUCCESS
+        return packet[1] == ATCA_STATUS.ATCA_SUCCESS
 
     def atcab_verify_stored_mac(self, message, signature, key_id, num_in, io_key, is_verified):
         raise NotImplementedError("atcab_verify_stored_mac")
