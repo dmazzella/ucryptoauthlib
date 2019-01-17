@@ -17,7 +17,7 @@ from ateccX08a import tests_verify
 log = logging.getLogger("ateccX08a")
 
 
-def test(name="ATECC608A", exclude=[
+def test(exclude=[
         # 'info',
         # 'sha',
         # 'random',
@@ -25,9 +25,9 @@ def test(name="ATECC608A", exclude=[
         # 'read',
         # 'write',
         'lock',
-        'verify'
+        # 'verify'
     ]):
-    device = ATECCX08A(device=name)
+    device = ATECCX08A()
     log.info("%s", device)
 
     if 'info' not in exclude:
@@ -81,5 +81,4 @@ def test(name="ATECC608A", exclude=[
 # import logging
 # logging.basicConfig(level=logging.DEBUG)
 
-# import ateccX08a; ateccX08a.test("ATECC508A")
-# import ateccX08a; ateccX08a.test("ATECC608A")
+# import ateccX08a; ateccX08a.test()
