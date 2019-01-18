@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 # pylint: disable=E0401
+# pylint: disable=E0602
 import micropython
 import ustruct
 import utime
@@ -10,8 +11,7 @@ from cryptoauthlib import constant as ATCA
 class ATCAPacket(object):
     """ ATCAPacket """
 
-    struct_format = "<BBBH"
-    struct_size = ustruct.calcsize(struct_format)
+    struct_format = "<BBBH{:d}s"
 
     def __init__(
         self,
@@ -23,15 +23,13 @@ class ATCAPacket(object):
         response_data=b'',
         device="ATECC508A"
     ):
-        self._txsize = txsize
-        self._opcode = opcode
-        self._param1 = param1
-        self._param2 = param2
+        self.txsize = txsize
+        self.opcode = opcode
+        self.param1 = param1
+        self.param2 = param2
+        self.device = device
         self._request_data = request_data
-        self._response_data = response_data or bytearray(
-            ATCA.ATCA_CMD_SIZE_MAX)
-        self._device = device
-        self._delay = ATCA.EXECUTION_TIME[device].get(opcode, 2000)
+        self._response_data = response_data or bytearray(ATCA.ATCA_CMD_SIZE_MAX)
 
     def __str__(self):
         return (
@@ -41,7 +39,8 @@ class ATCAPacket(object):
             " param1=0x{:02x}"
             " param2=0x{:04x}"
             " request_data={:s}"
-            " response_data={:s}>"
+            " response_data={:s}"
+            " device={:s}>"
         ).format(
             self.__class__.__name__,
             self.txsize,
@@ -49,23 +48,16 @@ class ATCAPacket(object):
             self.param1,
             self.param2,
             hexlify(self.request_data),
-            hexlify(self.response_data)
+            hexlify(self.response_data),
+            self.device
         )
 
     def __getitem__(self, i):
         return self._response_data[i]
 
     def __getattr__(self, name):
-        if name == "txsize":
-            return self._txsize
-        elif name == "opcode":
-            return self._opcode
-        elif name == "param1":
-            return self._param1
-        elif name == "param2":
-            return self._param2
-        elif name == "delay":
-            return self._delay
+        if name == "delay":
+            return ATCA.EXECUTION_TIME[self.device].get(self.opcode, 150)
         elif name == "request_length":
             return len(self._request_data)
         elif name == "request_data":
@@ -81,43 +73,49 @@ class ATCAPacket(object):
         else:
             raise AttributeError(name)
 
-    @staticmethod
-    def from_buffer(buffer, response_data=b'', device="ATECC508A"):
-        buffer_mv = memoryview(buffer)
-        txsize, opcode, param1, param2 = ustruct.unpack_from(
-            ATCAPacket.struct_format,
-            buffer_mv[:ATCAPacket.struct_size]
-        )
-        request_data = buffer_mv[ATCAPacket.struct_size:]
-        return ATCAPacket(
-            txsize=txsize,
-            opcode=opcode,
-            param1=param1,
-            param2=param2,
-            request_data=request_data,
-            response_data=response_data,
-            device=device
-        )
-
     def to_buffer(self):
-        params = ustruct.pack(
-            ATCAPacket.struct_format,
+        params = bytearray(self.txsize)
+        ustruct.pack_into(
+            ATCAPacket.struct_format.format(len(self.request_data)),
+            params,
+            0,
             self.txsize,
             self.opcode,
             self.param1,
-            self.param2
-        ) + self.request_data
-        params += self.at_crc(params)
+            self.param2,
+            self.request_data
+        )
+        self.at_crc(params, self.txsize-ATCA.ATCA_CRC_SIZE)
         return params
 
-    # @micropython.native
-    def at_crc(self, data, polynom=0x8005):
+    @micropython.viper
+    def at_crc(self, src: ptr8, length: int) -> int:
+        polynom = 0x8005
         crc = 0
-        for d in data:
+        for i in range(length):
+            d = src[i]
             for b in range(8):
                 data_bit = 1 if d & 1 << b else 0
                 crc_bit = crc >> 15 & 0xff
                 crc = crc << 1 & 0xffff
                 if data_bit != crc_bit:
                     crc = crc ^ polynom & 0xffff
-        return bytes([crc & 0x00ff, crc >> 8 & 0xff])
+        src[length] = crc & 0x00ff
+        src[length+1] = crc >> 8 & 0xff
+        return crc
+
+    # @micropython.native
+    # def at_crc(self, src, length):
+    #     polynom = 0x8005
+    #     crc = 0
+    #     for i in range(length):
+    #         d = src[i]
+    #         for b in range(8):
+    #             data_bit = 1 if d & 1 << b else 0
+    #             crc_bit = crc >> 15 & 0xff
+    #             crc = crc << 1 & 0xffff
+    #             if data_bit != crc_bit:
+    #                 crc = crc ^ polynom & 0xffff
+    #     src[length] = crc & 0x00ff
+    #     src[length+1] = crc >> 8 & 0xff
+    #     return crc

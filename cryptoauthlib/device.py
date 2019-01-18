@@ -12,7 +12,7 @@ from cryptoauthlib.basic import ATECCBasic
 
 
 I2C_ADDRESS = micropython.const(0xC0 >> 1)
-BAUDRATE = micropython.const(160000)
+BAUDRATE = micropython.const(1000000)
 WAKE_DELAY = micropython.const(150)
 RX_RETRIES = micropython.const(20)
 SUPPORTED_DEVICES = {0x50: "ATECC508A", 0x60: "ATECC608A"}
@@ -23,7 +23,7 @@ class ATECCX08A(ATECCBasic):
 
     def __init__(
             self,
-            bus=machine.I2C(1, freq=BAUDRATE),
+            bus=machine.I2C(1, freq=133000),
             address=I2C_ADDRESS, retries=RX_RETRIES):
 
         if address not in bus.scan():
@@ -38,11 +38,10 @@ class ATECCX08A(ATECCBasic):
             raise ATCA_EXECUTIONS.UnsupportedDeviceError()
 
     def __str__(self):
-        return "<{:s} address=0x{:02x} retries={:d} device={:s}>".format(
-            self.__class__.__name__,
+        return "<{:s} address=0x{:02x} retries={:d}>".format(
+            self._device or self.__class__.__name__,
             self._address,
-            self._retries,
-            self._device
+            self._retries
         )
 
     @property
@@ -68,7 +67,8 @@ class ATECCX08A(ATECCBasic):
                 utime.sleep_us(WAKE_DELAY)
 
                 # Set device name
-                packet.device = self._device
+                if isinstance(self._device, str):
+                    packet.device = self._device
 
                 # Send the command
                 self._bus.writeto(self._address, b'\x03' + packet.to_buffer())
