@@ -1,8 +1,9 @@
 # -*- coding: utf-8 -*-
 # pylint: disable=E0401
 import logging
-import utime
 from ubinascii import hexlify, unhexlify
+
+from cryptoauthlib import constant as ATCA_CONSTANTS
 
 log = logging.getLogger("ateccX08a.tests_verify")
 
@@ -35,19 +36,16 @@ def run(device=None, configuration=None):
     if not device:
         raise ValueError("device")
 
-    slot = 11
     public_key = _TEST_KEYS["PUBLIC"]
     message = _TEST_KEYS["MESSAGE"]
-    message_digest = device.atcab_sha(message)[1:-2]
+    digest = device.atcab_sha(message)[1:-2]
     signature = _TEST_KEYS["SIGNATURE"]["R"] + _TEST_KEYS["SIGNATURE"]["S"]
     # # verify the signature extern
-    t = utime.ticks_us()
-    verified = device.atcab_verify_extern(
-        message_digest, signature, public_key)
-    delta = utime.ticks_diff(utime.ticks_us(), t)
-    print('Time={:6.3f}ms '.format(delta/1000))
+    verified = device.atcab_verify_extern(digest, signature, public_key)
     log.info("atcab_verify_extern %r", verified)
+
     # # verify the signature stored
-    # device.atcab_nonce_load(ATCA_CONSTANTS.NONCE_MODE_TARGET_TEMPKEY, message_digest)
-    verified = device.atcab_verify_stored(message_digest, signature, slot)
-    log.info("atcab_verify_stored %r", verified)
+    # slot = 11
+    # device.atcab_nonce_load(ATCA_CONSTANTS.NONCE_MODE_TARGET_TEMPKEY, digest)
+    # verified = device.atcab_verify_stored(message, signature, slot)
+    # log.info("atcab_verify_stored %r", verified)
