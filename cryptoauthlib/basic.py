@@ -637,13 +637,17 @@ class ATECCBasic(object):
             verify_source = ATCA_CONSTANTS.VERIFY_MODE_SOURCE_MSGDIGBUF
 
         self.atcab_nonce_load(nonce_target, message)
-        packet = self.atcab_verify(
-            ATCA_CONSTANTS.VERIFY_MODE_EXTERNAL | verify_source,
-            ATCA_CONSTANTS.VERIFY_KEY_P256,
-            signature,
-            public_key
-        )
-        return packet[1] == ATCA_STATUS.ATCA_SUCCESS
+        try:
+            packet = self.atcab_verify(
+                ATCA_CONSTANTS.VERIFY_MODE_EXTERNAL | verify_source,
+                ATCA_CONSTANTS.VERIFY_KEY_P256,
+                signature,
+                public_key
+            )
+            return packet[1] == ATCA_STATUS.ATCA_SUCCESS
+        except ATCA_EXCEPTIONS.CheckmacVerifyFailedError:
+            # Verify failed, but command succeeded
+            return False
 
     def atcab_verify_extern_mac(self, message, signature, public_key, num_in, io_key, is_verified):
         raise NotImplementedError("atcab_verify_extern_mac")
@@ -665,12 +669,16 @@ class ATECCBasic(object):
             verify_source = ATCA_CONSTANTS.VERIFY_MODE_SOURCE_MSGDIGBUF
 
         self.atcab_nonce_load(nonce_target, message)
-        packet = self.atcab_verify(
-            ATCA_CONSTANTS.VERIFY_MODE_STORED | verify_source,
-            key_id,
-            signature
-        )
-        return packet[1] == ATCA_STATUS.ATCA_SUCCESS
+        try:
+            packet = self.atcab_verify(
+                ATCA_CONSTANTS.VERIFY_MODE_STORED | verify_source,
+                key_id,
+                signature
+            )
+            return packet[1] == ATCA_STATUS.ATCA_SUCCESS
+        except ATCA_EXCEPTIONS.CheckmacVerifyFailedError:
+            # Verify failed, but command succeeded
+            return False
 
     def atcab_verify_stored_mac(self, message, signature, key_id, num_in, io_key, is_verified):
         raise NotImplementedError("atcab_verify_stored_mac")
