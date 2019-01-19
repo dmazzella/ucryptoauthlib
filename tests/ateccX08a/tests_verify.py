@@ -42,10 +42,10 @@ def run(device=None, configuration=None):
     signature = _TEST_KEYS["SIGNATURE"]["R"] + _TEST_KEYS["SIGNATURE"]["S"]
     # # verify the signature extern
     verified = device.atcab_verify_extern(digest, signature, public_key)
-    log.info("atcab_verify_extern %r", verified)
+    log.debug("atcab_verify_extern %r", verified)
 
     # # verify the signature stored
     # slot = 11
     # device.atcab_nonce_load(ATCA_CONSTANTS.NONCE_MODE_TARGET_TEMPKEY, digest)
     # verified = device.atcab_verify_stored(message, signature, slot)
-    # log.info("atcab_verify_stored %r", verified)
+    # log.debug("atcab_verify_stored %r", verified)

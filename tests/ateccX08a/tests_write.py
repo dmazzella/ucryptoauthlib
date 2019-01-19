@@ -73,12 +73,12 @@ def run(device=None):
         device.atcab_write_config_zone(config)
         device.atcab_lock_config_zone()
     else:
-        log.info("configuration zone locked")
+        log.debug("configuration zone locked")
 
     if not device.atcab_is_locked(ATCA_CONSTANTS.LOCK_ZONE_DATA):
         device.atcab_lock_data_zone()
     else:
-        log.info("data zone locked")
+        log.debug("data zone locked")
 
     slot = 11
     if not device.atcab_is_slot_locked(slot):
@@ -88,4 +88,4 @@ def run(device=None):
         # # verify wrote public_key
         assert public_key == device.atcab_read_pubkey(slot)
     else:
-        log.info("slot %d locked", slot)
+        log.debug("slot %d locked", slot)

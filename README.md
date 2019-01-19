@@ -16,15 +16,18 @@ Usage
 - TESTS:
 
 ```python
-MicroPython v1.9.4-679-ge328a5d46-dirty on 2018-10-29; PYBv1.1 with STM32F405RG
+MicroPython v1.9.4-754-g5146e7949-dirty on 2018-12-13; PYBv1.1 with STM32F405RG
 Type "help()" for more information.
 >>> import ateccX08a; ateccX08a.test()
-INFO:ateccX08a <ATECCX08A address=0x60 retries=20 device=ATECC608A>
+INFO:ateccX08a <ATECC608A address=0x60 retries=20>
 INFO:ateccX08a INFO SUCCEDED
 INFO:ateccX08a SHA SUCCEDED
 INFO:ateccX08a RANDOM SUCCEDED
 INFO:ateccX08a NONCE SUCCEDED
 INFO:ateccX08a READ SUCCEDED
+INFO:ateccX08a WRITE SUCCEDED
+INFO:ateccX08a LOCK SKIPPED
+INFO:ateccX08a VERIFY SUCCEDED
 >>> 
 ```
 
@@ -32,7 +35,6 @@ Enable DEBUG:
 ```python
 import logging
 logging.basicConfig(level=logging.DEBUG)
-import ateccX08a
 ```
 
 External dependencies
