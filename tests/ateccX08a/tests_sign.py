@@ -12,7 +12,10 @@ def run(device=None):
         raise ValueError("device")
 
     slot = 2
+    public_key_gen = device.atcab_genkey(slot)[1:-2]
+    log.debug("atcab_genkey %r", hexlify(public_key_gen))
     public_key = device.atcab_get_pubkey(slot)[1:-2]
+    assert bytes(public_key_gen) == public_key
     log.debug("atcab_get_pubkey %r", hexlify(public_key))
     digest = device.atcab_sha(_MESSAGE)[1:-2]
     log.debug("atcab_sha %r %r", _MESSAGE, hexlify(digest))
