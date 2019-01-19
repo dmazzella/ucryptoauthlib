@@ -28,6 +28,7 @@ INFO:ateccX08a READ SUCCEDED
 INFO:ateccX08a WRITE SUCCEDED
 INFO:ateccX08a LOCK SKIPPED
 INFO:ateccX08a VERIFY SUCCEDED
+INFO:ateccX08a SIGN SUCCEDED
 >>> 
 ```
 
@@ -61,6 +62,8 @@ Currently supported commands are:
 - SHA (1)
 - WRITE (1)
 - VERIFY (1)
+- GENKEY
+- SIGN
 
   (1) Not all features are implemented
 

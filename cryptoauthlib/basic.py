@@ -135,14 +135,32 @@ class ATECCBasic(object):
     #           CryptoAuthLib Basic API methods for GenKey command            #
     ###########################################################################
 
-    def atcab_genkey_base(self, mode, key_id, other_data):
-        raise NotImplementedError("atcab_genkey_base")
+    def atcab_genkey_base(self, mode, key_id, other_data=None):
+
+        txsize = 0
+        if mode & ATCA_CONSTANTS.GENKEY_MODE_PUBKEY_DIGEST:
+            txsize = ATCA_CONSTANTS.GENKEY_COUNT_DATA
+        else:
+            txsize = ATCA_CONSTANTS.GENKEY_COUNT
+
+        has_other_data = isinstance(other_data, (bytes, bytearray, memoryview))
+        data = other_data if has_other_data else b''
+
+        packet = ATCAPacket(
+            txsize=txsize,
+            opcode=ATCA_CONSTANTS.ATCA_GENKEY,
+            param1=mode,
+            param2=key_id,
+            request_data=data
+        )
+        self.execute(packet)
+        return packet
 
     def atcab_genkey(self, key_id):
-        raise NotImplementedError("atcab_genkey")
+        return self.atcab_genkey_base(ATCA_CONSTANTS.GENKEY_MODE_PRIVATE, key_id)
 
     def atcab_get_pubkey(self, key_id):
-        raise NotImplementedError("atcab_get_pubkey")
+        return self.atcab_genkey_base(ATCA_CONSTANTS.GENKEY_MODE_PUBLIC, key_id)
 
     ###########################################################################
     #            CryptoAuthLib Basic API methods for HMAC command             #
@@ -538,13 +556,40 @@ class ATECCBasic(object):
     ###########################################################################
 
     def atcab_sign_base(self, mode, key_id):
-        raise NotImplementedError("atcab_sign_base")
+        packet = ATCAPacket(
+            txsize=ATCA_CONSTANTS.SIGN_COUNT,
+            opcode=ATCA_CONSTANTS.ATCA_SIGN,
+            param1=mode,
+            param2=key_id
+        )
+        self.execute(packet)
+        return packet
 
-    def atcab_sign(self, key_id, msg):
-        raise NotImplementedError("atcab_sign")
+    def atcab_sign(self, key_id, message):
+        nonce_target = ATCA_CONSTANTS.NONCE_MODE_TARGET_TEMPKEY
+        sign_source = ATCA_CONSTANTS.SIGN_MODE_SOURCE_TEMPKEY
 
-    def atcab_sign_internal(self, key_id, is_invalidate, is_full_sn):
-        raise NotImplementedError("atcab_sign_internal")
+        # Load message into device
+        if self._device == "ATECC608A":
+            # Use the Message Digest Buffer for the ATECC608A
+            nonce_target = ATCA_CONSTANTS.NONCE_MODE_TARGET_MSGDIGBUF
+            sign_source = ATCA_CONSTANTS.SIGN_MODE_SOURCE_MSGDIGBUF
+
+        self.atcab_nonce_load(nonce_target, message)
+        return self.atcab_sign_base(
+            ATCA_CONSTANTS.SIGN_MODE_EXTERNAL | sign_source,
+            key_id
+        )
+
+    def atcab_sign_internal(self, key_id, is_invalidate=False, is_full_sn=False):
+        mode = ATCA_CONSTANTS.SIGN_MODE_INTERNAL
+        if is_invalidate:
+            mode = mode | ATCA_CONSTANTS.SIGN_MODE_INVALIDATE
+
+        if is_full_sn:
+            mode =  mode | ATCA_CONSTANTS.SIGN_MODE_INCLUDE_SN
+
+        return self.atcab_sign_base(mode, key_id)
 
     ###########################################################################
     #         CryptoAuthLib Basic API methods for UpdateExtra command         #
