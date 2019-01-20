@@ -13,6 +13,18 @@ Features
 Usage
 ---------------------
 
+- BASIC
+
+```python
+MicroPython v1.9.4-754-g5146e7949-dirty on 2018-12-13; PYBv1.1 with STM32F405RG
+Type "help()" for more information.
+>>> from cryptoauthlib.device import ATECCX08A
+>>> device = ATECCX08A()
+>>> print(device)
+<ATECC608A address=0x60 retries=20>
+>>>
+```
+
 - TESTS:
 
 ```python
