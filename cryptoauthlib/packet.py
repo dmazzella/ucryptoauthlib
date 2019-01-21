@@ -57,7 +57,9 @@ class ATCAPacket(object):
 
     def __getattr__(self, name):
         if name == "delay":
-            return ATCA.EXECUTION_TIME[self.device].get(self.opcode, 150)
+            return ATCA.EXECUTION_TIME.get(
+                self.device, "ATECC508A"
+            ).get(self.opcode, 250)
         elif name == "request_length":
             return len(self._request_data)
         elif name == "request_data":
@@ -74,7 +76,7 @@ class ATCAPacket(object):
             raise AttributeError(name)
 
     def to_buffer(self):
-        params = bytearray(self.txsize)
+        params = self.response_data or bytearray(self.txsize)
         ustruct.pack_into(
             ATCAPacket.struct_format.format(len(self.request_data)),
             params,

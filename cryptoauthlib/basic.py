@@ -5,6 +5,7 @@ from cryptoauthlib import status as ATCA_STATUS
 from cryptoauthlib.packet import ATCAPacket
 
 _ATCA_VERSION = "20190104"
+_BYTES_LIKE_OBJECT = (bytes, bytearray, memoryview)
 
 
 class ATECCBasic(object):
@@ -143,7 +144,7 @@ class ATECCBasic(object):
         else:
             txsize = ATCA_CONSTANTS.GENKEY_COUNT
 
-        has_other_data = isinstance(other_data, (bytes, bytearray, memoryview))
+        has_other_data = isinstance(other_data, _BYTES_LIKE_OBJECT)
         data = other_data if has_other_data else b''
 
         packet = ATCAPacket(
@@ -247,7 +248,7 @@ class ATECCBasic(object):
         ):
             raise ATCA_EXCEPTIONS.BadArgumentError()
 
-        if not isinstance(numbers, (bytes, bytearray, memoryview)):
+        if not isinstance(numbers, _BYTES_LIKE_OBJECT):
             raise ATCA_EXCEPTIONS.BadArgumentError()
 
         txsize = 0
@@ -287,7 +288,7 @@ class ATECCBasic(object):
         )
 
     def atcab_nonce_load(self, target, numbers=None):
-        if not isinstance(numbers, (bytes, bytearray, memoryview)):
+        if not isinstance(numbers, _BYTES_LIKE_OBJECT):
             raise ATCA_EXCEPTIONS.BadArgumentError()
 
         mode = ATCA_CONSTANTS.NONCE_MODE_PASSTHROUGH
@@ -504,7 +505,7 @@ class ATECCBasic(object):
     ###########################################################################
 
     def atcab_sha_base(self, mode=0, data=b'', key_slot=None):
-        if not isinstance(data, (bytes, bytearray, memoryview)):
+        if not isinstance(data, _BYTES_LIKE_OBJECT):
             raise ATCA_EXCEPTIONS.BadArgumentError()
 
         txsize = 0
@@ -587,7 +588,7 @@ class ATECCBasic(object):
             mode = mode | ATCA_CONSTANTS.SIGN_MODE_INVALIDATE
 
         if is_full_sn:
-            mode =  mode | ATCA_CONSTANTS.SIGN_MODE_INCLUDE_SN
+            mode = mode | ATCA_CONSTANTS.SIGN_MODE_INCLUDE_SN
 
         return self.atcab_sign_base(mode, key_id)
 
@@ -609,19 +610,19 @@ class ATECCBasic(object):
     ###########################################################################
 
     def atcab_verify(self, mode, key_id, signature, public_key=None, other_data=None, mac=None):
-        if not isinstance(signature, (bytes, bytearray, memoryview)):
+        if not isinstance(signature, _BYTES_LIKE_OBJECT):
             raise ATCA_EXCEPTIONS.BadArgumentError()
 
         verify_mode = (mode & ATCA_CONSTANTS.VERIFY_MODE_MASK)
 
         VME = ATCA_CONSTANTS.VERIFY_MODE_EXTERNAL
-        has_public_key = isinstance(public_key, (bytes, bytearray, memoryview))
+        has_public_key = isinstance(public_key, _BYTES_LIKE_OBJECT)
         if verify_mode == VME and not has_public_key:
             raise ATCA_EXCEPTIONS.BadArgumentError()
 
         VMV = ATCA_CONSTANTS.VERIFY_MODE_VALIDATE
         VMI = ATCA_CONSTANTS.VERIFY_MODE_INVALIDATE
-        has_other_data = isinstance(other_data, (bytes, bytearray, memoryview))
+        has_other_data = isinstance(other_data, _BYTES_LIKE_OBJECT)
         if verify_mode in (VMV, VMI) and not has_other_data:
             raise ATCA_EXCEPTIONS.BadArgumentError()
 
@@ -663,13 +664,13 @@ class ATECCBasic(object):
         return packet
 
     def atcab_verify_extern(self, message, signature, public_key):
-        if not isinstance(message, (bytes, bytearray, memoryview)):
+        if not isinstance(message, _BYTES_LIKE_OBJECT):
             raise ATCA_EXCEPTIONS.BadArgumentError()
 
-        if not isinstance(signature, (bytes, bytearray, memoryview)):
+        if not isinstance(signature, _BYTES_LIKE_OBJECT):
             raise ATCA_EXCEPTIONS.BadArgumentError()
 
-        if not isinstance(public_key, (bytes, bytearray, memoryview)):
+        if not isinstance(public_key, _BYTES_LIKE_OBJECT):
             raise ATCA_EXCEPTIONS.BadArgumentError()
 
         nonce_target = ATCA_CONSTANTS.NONCE_MODE_TARGET_TEMPKEY
@@ -698,10 +699,10 @@ class ATECCBasic(object):
         raise NotImplementedError("atcab_verify_extern_mac")
 
     def atcab_verify_stored(self, message, signature, key_id):
-        if not isinstance(message, (bytes, bytearray, memoryview)):
+        if not isinstance(message, _BYTES_LIKE_OBJECT):
             raise ATCA_EXCEPTIONS.BadArgumentError()
 
-        if not isinstance(signature, (bytes, bytearray, memoryview)):
+        if not isinstance(signature, _BYTES_LIKE_OBJECT):
             raise ATCA_EXCEPTIONS.BadArgumentError()
 
         nonce_target = ATCA_CONSTANTS.NONCE_MODE_TARGET_TEMPKEY
@@ -739,7 +740,7 @@ class ATECCBasic(object):
     ###########################################################################
 
     def atcab_write(self, zone, address, value=None, mac=None):
-        if not isinstance(value, (bytes, bytearray, memoryview)):
+        if not isinstance(value, _BYTES_LIKE_OBJECT):
             raise ATCA_EXCEPTIONS.BadArgumentError()
 
         txsize = ATCA_CONSTANTS.ATCA_CMD_SIZE_MIN
@@ -749,7 +750,7 @@ class ATECCBasic(object):
             data[0:32] = value
             txsize += ATCA_CONSTANTS.ATCA_BLOCK_SIZE
             # Only 32-byte writes can have a MAC
-            if isinstance(mac, (bytes, bytearray, memoryview)):
+            if isinstance(mac, _BYTES_LIKE_OBJECT):
                 data[32:64] = mac
                 txsize += ATCA_CONSTANTS.WRITE_MAC_SIZE
         else:
@@ -768,7 +769,7 @@ class ATECCBasic(object):
         return packet
 
     def atcab_write_zone(self, zone, slot=0, block=0, offset=0, data=None):
-        if not isinstance(data, (bytes, bytearray, memoryview)):
+        if not isinstance(data, _BYTES_LIKE_OBJECT):
             raise ATCA_EXCEPTIONS.BadArgumentError()
 
         length = len(data)
@@ -785,7 +786,7 @@ class ATECCBasic(object):
         return self.atcab_write(zone, addr, data)
 
     def atcab_write_bytes_zone(self, zone, slot=0, offset=0, data=None):
-        if not isinstance(data, (bytes, bytearray, memoryview)):
+        if not isinstance(data, _BYTES_LIKE_OBJECT):
             raise ATCA_EXCEPTIONS.BadArgumentError()
 
         zone_size = self.atcab_get_zone_size(zone, slot=slot)
@@ -837,7 +838,7 @@ class ATECCBasic(object):
         return packets
 
     def atcab_write_pubkey(self, slot, public_key):
-        if not isinstance(public_key, (bytes, bytearray, memoryview)):
+        if not isinstance(public_key, _BYTES_LIKE_OBJECT):
             raise ATCA_EXCEPTIONS.BadArgumentError()
 
         # Check the value of the slot. Only slots 8 to 15 are large enough to store a public key
@@ -869,7 +870,7 @@ class ATECCBasic(object):
         return packets
 
     def atcab_write_config_zone(self, config_data):
-        if not isinstance(config_data, (bytes, bytearray, memoryview)):
+        if not isinstance(config_data, _BYTES_LIKE_OBJECT):
             raise ATCA_EXCEPTIONS.BadArgumentError()
 
         config_size = self.atcab_get_zone_size(ATCA_CONSTANTS.ATCA_ZONE_CONFIG)
