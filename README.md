@@ -10,6 +10,14 @@ Features
 
 - Allows PyBoard to control Microchip Crypto Authentication secure elements
 
+PyBoard breakout board:
+</br>
+<img src="https://raw.githubusercontent.com/dmazzella/ucryptoauthlib/master/docs/PYBOARD_ATECCX08A_bb.png" width="80%" height="80%" alt="PYBOARD plus ATECCX08A"/>
+</br>
+
+
+Fritzing for breakout: [PYBOARD_ATECCX08A.fzz](https://raw.githubusercontent.com/dmazzella/ucryptoauthlib/master/docs/PYBOARD_ATECCX08A.fzz)
+
 Usage
 ---------------------
 
