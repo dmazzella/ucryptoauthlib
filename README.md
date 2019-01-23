@@ -10,14 +10,15 @@ Features
 
 - Allows PyBoard to control Microchip Crypto Authentication secure elements
 
+Usage
+---------------------
+
 - PyBoard basic connection:
+
 </br>
 <img src="https://raw.githubusercontent.com/dmazzella/ucryptoauthlib/master/docs/PYBOARD_ATECCX08A_bb.png" width="80%" height="80%" alt="PYBOARD plus ATECCX08A"/>
 </br>
 
-
-Usage
----------------------
 
 - BASIC
 
