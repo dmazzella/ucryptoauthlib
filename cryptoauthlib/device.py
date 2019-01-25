@@ -6,7 +6,7 @@ import utime
 import micropython
 
 import cryptoauthlib.constant as ATCA_CONSTANTS
-import cryptoauthlib.exceptions as ATCA_EXECUTIONS
+import cryptoauthlib.exceptions as ATCA_EXCEPTIONS
 import cryptoauthlib.status as ATCA_STATUS
 from cryptoauthlib.basic import ATECCBasic
 
@@ -27,7 +27,7 @@ class ATECCX08A(ATECCBasic):
             address=I2C_ADDRESS, retries=RX_RETRIES):
 
         if address not in bus.scan():
-            raise ATCA_EXECUTIONS.NoDevicesFoundError()
+            raise ATCA_EXCEPTIONS.NoDevicesFoundError()
 
         self._bus = bus
         self._address = address
@@ -35,7 +35,7 @@ class ATECCX08A(ATECCBasic):
         try:
             self._device = SUPPORTED_DEVICES[self.atcab_info()[1+2]]
         except KeyError:
-            raise ATCA_EXECUTIONS.UnsupportedDeviceError()
+            raise ATCA_EXCEPTIONS.UnsupportedDeviceError()
 
     def __str__(self):
         return "<{:s} address=0x{:02x} retries={:d}>".format(
@@ -97,4 +97,4 @@ class ATECCX08A(ATECCBasic):
             except OSError:
                 retries -= 1
         else:
-            raise ATCA_EXECUTIONS.GenericError("max retry")
+            raise ATCA_EXCEPTIONS.GenericError("max retry")
