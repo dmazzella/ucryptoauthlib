@@ -72,20 +72,26 @@ class ATECCX08A(ATECCBasic):
 
                 # Send the command
                 self._bus.writeto(self._address, b'\x03' + packet.to_buffer())
+ 
+                resp = packet.response_data_mv
 
-                # Delay for execution time
-                utime.sleep_ms(packet.delay)
-
-                response = packet.response_data_mv
-
-                # Receive the response
-                self._bus.readfrom_into(self._address, response[0:1])
-                self._bus.readfrom_into(self._address, response[1:response[0]])
+                # Cyclic reading up to the completion of the calculation and in
+                # any case no later than the tEXEC
+                d_t = packet.delay
+                p_t = utime.ticks_ms()
+                while utime.ticks_diff(utime.ticks_ms(), p_t) <= min(d_t, 250):
+                    try:
+                        self._bus.readfrom_into(self._address, resp[0:1])
+                        self._bus.readfrom_into(self._address, resp[1:resp[0]])
+                    except OSError:
+                        continue
+                    else:
+                        break
 
                 # Check response
-                err, exc = self.is_error(response)
+                err, exc = self.is_error(resp)
                 if err == ATCA_STATUS.ATCA_SUCCESS:
-                    packet._response_data = response[:response[0]]
+                    packet._response_data = resp[:resp[0]]
                     return
                 elif err == ATCA_STATUS.ATCA_WAKE_SUCCESS:
                     return
@@ -93,7 +99,8 @@ class ATECCX08A(ATECCBasic):
                     self.sleep()
                 else:
                     if exc is not None:
-                        raise exc(ubinascii.hexlify(response[:response[0]]))
+                        packet._response_data = resp[:resp[0]]
+                        raise exc(ubinascii.hexlify(packet._response_data))
             except OSError:
                 retries -= 1
         else:
