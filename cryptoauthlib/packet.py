@@ -106,7 +106,6 @@ class ATCAPacket(object):
         src[length+1] = crc >> 8 & 0xff
         return crc
 
-    # @micropython.native
     # def at_crc(self, src, length):
     #     polynom = 0x8005
     #     crc = 0

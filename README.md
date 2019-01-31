@@ -67,7 +67,11 @@ Install 'cryptoauthlib' into the PyBoard
 ---------------------
 
 1. Copy 'cryptoauthlib' into PyBoard's filesystem
-2. Freeze package using FROZEN_MPY_DIR
+2. Freeze package using FROZEN_MPY_DIR (1)
+
+   (1) Into the file cryptoauthlib/packet.py:
+     - comment optimized method ```at_crc``` decorated with ```@micropython.viper```
+     - uncomment generic method ```at_crc```
 
 Software
 ---------------------
