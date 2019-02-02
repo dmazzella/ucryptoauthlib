@@ -6,6 +6,7 @@ from uio import BytesIO, StringIO
 
 from cryptoauthlib import constant as ATCA_CONSTANTS
 from cryptoauthlib import util as ATEC_UTIL
+from cryptoauthlib import exceptions as ATCA_EXCEPTIONS
 
 log = logging.getLogger("ateccX08a.tests_read")
 
@@ -35,6 +36,9 @@ def run(device=None):
     locked_data = device.atcab_is_locked(ATCA_CONSTANTS.LOCK_ZONE_DATA)
     log.debug("atcab_is_locked LOCK_ZONE_DATA: %r", locked_data)
 
-    slot = 11
-    public_key = device.atcab_read_pubkey(slot)
-    log.debug("atcab_read_pubkey slot %d: %s", slot, hexlify(public_key))
+    try:
+        slot = 11
+        public_key = device.atcab_read_pubkey(slot)
+        log.debug("atcab_read_pubkey slot %d: %s", slot, hexlify(public_key))
+    except ATCA_EXCEPTIONS.ExecutionError:
+        pass
