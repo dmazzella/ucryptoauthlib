@@ -9,6 +9,7 @@ Features
 ---------------------
 
 - Allows PyBoard to control Microchip Crypto Authentication secure elements
+- Automatic recognition of the Microchip Crypto Authentication secure element
 - The API are the same of the [Library](https://github.com/MicrochipTech/cryptoauthlib) wrote by Microchip
 
 Usage
@@ -24,7 +25,7 @@ Usage
 - BASIC
 
 ```python
-MicroPython v1.9.4-754-g5146e7949-dirty on 2018-12-13; PYBv1.1 with STM32F405RG
+MicroPython v1.10-127-g5801a003f-dirty on 2019-02-24; PYBv1.1 with STM32F405RG
 Type "help()" for more information.
 >>> from cryptoauthlib.device import ATECCX08A
 >>> device = ATECCX08A()
@@ -36,7 +37,7 @@ Type "help()" for more information.
 - TESTS:
 
 ```python
-MicroPython v1.9.4-754-g5146e7949-dirty on 2018-12-13; PYBv1.1 with STM32F405RG
+MicroPython v1.10-127-g5801a003f-dirty on 2019-02-24; PYBv1.1 with STM32F405RG
 Type "help()" for more information.
 >>> import ateccX08a; ateccX08a.test()
 INFO:ateccX08a <ATECC608A address=0x60 retries=20>
@@ -49,6 +50,7 @@ INFO:ateccX08a WRITE SUCCEDED
 INFO:ateccX08a LOCK SKIPPED
 INFO:ateccX08a VERIFY SUCCEDED
 INFO:ateccX08a SIGN SUCCEDED
+INFO:ateccX08a SELFTEST SUCCEDED
 >>> 
 ```
 
