@@ -44,6 +44,9 @@ class ATECCX08A(ATECCBasic):
             self._retries
         )
 
+    def __repr__(self):
+        return str(self)
+
     @property
     def device(self):
         return self._device

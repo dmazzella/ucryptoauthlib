@@ -52,6 +52,9 @@ class ATCAPacket(object):
             self.device
         )
 
+    def __repr__(self):
+        return str(self)
+
     def __getitem__(self, i):
         return self._response_data[i]
 
