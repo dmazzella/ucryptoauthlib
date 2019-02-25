@@ -96,77 +96,77 @@ Currently implemented methods are:
 
 ![API Implemented](http://progressed.io/bar/59)
 
-- [x] atcab_version()
-- [x] atcab_get_addr(zone, slot=0, block=0, offset=0)
-- [x] atcab_get_zone_size(zone, slot=0)
-- [ ] atcab_checkmac(mode, key_id, challenge, response,  other_data)
-- [ ] atcab_counter(mode, counter_id)
-- [ ] atcab_counter_increment(counter_id)
-- [ ] atcab_counter_read(counter_id)
-- [ ] atcab_derivekey(mode, key_id, mac)
-- [ ] atcab_ecdh_base(mode, key_id, public_key)
-- [ ] atcab_ecdh(key_id, public_key)
-- [ ] atcab_ecdh_enc(key_id, public_key, read_key, read_key_id)
-- [ ] atcab_ecdh_ioenc(key_id, public_key, io_key)
-- [ ] atcab_ecdh_tempkey(public_key)
-- [ ] atcab_ecdh_tempkey_ioenc(public_key, io_key)
-- [ ] atcab_gendig(zone, key_id, other_data)
-- [x] atcab_genkey_base(mode, key_id, other_data=None)
-- [x] atcab_genkey(key_id)
-- [x] atcab_get_pubkey(key_id)
-- [ ] atcab_hmac(mode, key_id)
-- [x] atcab_info_base(mode=0)
-- [x] atcab_info()
-- [ ] atcab_kdf(mode, key_id, details, message)
-- [x] atcab_lock(mode, crc=0)
-- [x] atcab_lock_config_zone()
-- [x] atcab_lock_config_zone_crc(crc)
-- [x] atcab_lock_data_zone()
-- [x] atcab_lock_data_zone_crc(crc)
-- [x] atcab_lock_data_slot(slot)
-- [ ] atcab_mac(mode, key_id, challenge)
-- [x] atcab_nonce_base(mode, zero=0, numbers=None)
-- [x] atcab_nonce(numbers=None)
-- [x] atcab_nonce_load(target, numbers=None)
-- [x] atcab_nonce_rand(numbers=None)
-- [x] atcab_challenge(numbers=None)
-- [x] atcab_challenge_seed_update(numbers=None)
-- [ ] atcab_priv_write(key_id, priv_key, write_key_id, write_key)
-- [x] atcab_random()
-- [x] atcab_read_zone(zone, slot=0, block=0, offset=0, length=0)
-- [x] atcab_read_serial_number()
-- [x] atcab_read_bytes_zone(zone, slot=0, block=0, offset=0, length=0)
-- [x] atcab_is_slot_locked(slot)
-- [x] atcab_is_locked(zone)
-- [x] atcab_read_config_zone()
-- [ ] atcab_read_enc(key_id, block, data, enc_key, enc_key_id)
-- [ ] atcab_cmp_config_zone(config_data)
-- [ ] atcab_read_sig(slot)
-- [x] atcab_read_pubkey(slot)
-- [ ] atcab_secureboot(mode, param2, digest, signature)
-- [ ] atcab_secureboot_mac(mode, digest, signature, num_in, io_key)
-- [ ] atcab_selftest(mode, param2)
-- [x] atcab_sha_base(mode=0, data=b'', key_slot=None)
-- [x] atcab_sha(data)
-- [ ] atcab_sha_hmac(data, key_slot, target)
-- [x] atcab_sign_base(mode, key_id)
-- [x] atcab_sign(key_id, message)
-- [x] atcab_sign_internal(key_id, is_invalidate=False, is_full_sn=False)
-- [x] atcab_updateextra(mode, value)
-- [x] atcab_verify(mode, key_id, signature, public_key=None, other_data=None, mac=None)
-- [x] atcab_verify_extern(message, signature, public_key)
-- [ ] atcab_verify_extern_mac(message, signature, public_key, num_in, io_key, is_verified)
-- [x] atcab_verify_stored(message, signature, key_id)
-- [ ] atcab_verify_stored_mac(message, signature, key_id, num_in, io_key, is_verified)
-- [ ] atcab_verify_validate( key_id, signature, other_data, is_verified)
-- [ ] atcab_verify_invalidate( key_id, signature, other_data, is_verified)
-- [x] atcab_write(zone, address, value=None, mac=None)
-- [x] atcab_write_zone(zone, slot=0, block=0, offset=0, data=None)
-- [x] atcab_write_bytes_zone(zone, slot=0, offset=0, data=None)
-- [x] atcab_write_pubkey(slot, public_key)
-- [x] atcab_write_config_zone(config_data)
-- [ ] atcab_write_enc(key_id, block, data, enc_key, enc_key_id)
-- [ ] atcab_write_config_counter(counter_id, counter_value)
+- [x] ```atcab_version()```
+- [x] ```atcab_get_addr(zone, slot=0, block=0, offset=0)```
+- [x] ```atcab_get_zone_size(zone, slot=0)```
+- [ ] ```atcab_checkmac(mode, key_id, challenge, response,  other_data)```
+- [ ] ```atcab_counter(mode, counter_id)```
+- [ ] ```atcab_counter_increment(counter_id)```
+- [ ] ```atcab_counter_read(counter_id)```
+- [ ] ```atcab_derivekey(mode, key_id, mac)```
+- [ ] ```atcab_ecdh_base(mode, key_id, public_key)```
+- [ ] ```atcab_ecdh(key_id, public_key)```
+- [ ] ```atcab_ecdh_enc(key_id, public_key, read_key, read_key_id)```
+- [ ] ```atcab_ecdh_ioenc(key_id, public_key, io_key)```
+- [ ] ```atcab_ecdh_tempkey(public_key)```
+- [ ] ```atcab_ecdh_tempkey_ioenc(public_key, io_key)```
+- [ ] ```atcab_gendig(zone, key_id, other_data)```
+- [x] ```atcab_genkey_base(mode, key_id, other_data=None)```
+- [x] ```atcab_genkey(key_id)```
+- [x] ```atcab_get_pubkey(key_id)```
+- [ ] ```atcab_hmac(mode, key_id)```
+- [x] ```atcab_info_base(mode=0)```
+- [x] ```atcab_info()```
+- [ ] ```atcab_kdf(mode, key_id, details, message)```
+- [x] ```atcab_lock(mode, crc=0)```
+- [x] ```atcab_lock_config_zone()```
+- [x] ```atcab_lock_config_zone_crc(crc)```
+- [x] ```atcab_lock_data_zone()```
+- [x] ```atcab_lock_data_zone_crc(crc)```
+- [x] ```atcab_lock_data_slot(slot)```
+- [ ] ```atcab_mac(mode, key_id, challenge)```
+- [x] ```atcab_nonce_base(mode, zero=0, numbers=None)```
+- [x] ```atcab_nonce(numbers=None)```
+- [x] ```atcab_nonce_load(target, numbers=None)```
+- [x] ```atcab_nonce_rand(numbers=None)```
+- [x] ```atcab_challenge(numbers=None)```
+- [x] ```atcab_challenge_seed_update(numbers=None)```
+- [ ] ```atcab_priv_write(key_id, priv_key, write_key_id, write_key)```
+- [x] ```atcab_random()```
+- [x] ```atcab_read_zone(zone, slot=0, block=0, offset=0, length=0)```
+- [x] ```atcab_read_serial_number()```
+- [x] ```atcab_read_bytes_zone(zone, slot=0, block=0, offset=0, length=0)```
+- [x] ```atcab_is_slot_locked(slot)```
+- [x] ```atcab_is_locked(zone)```
+- [x] ```atcab_read_config_zone()```
+- [ ] ```atcab_read_enc(key_id, block, data, enc_key, enc_key_id)```
+- [ ] ```atcab_cmp_config_zone(config_data)```
+- [ ] ```atcab_read_sig(slot)```
+- [x] ```atcab_read_pubkey(slot)```
+- [ ] ```atcab_secureboot(mode, param2, digest, signature)```
+- [ ] ```atcab_secureboot_mac(mode, digest, signature, num_in, io_key)```
+- [ ] ```atcab_selftest(mode, param2)```
+- [x] ```atcab_sha_base(mode=0, data=b'', key_slot=None)```
+- [x] ```atcab_sha(data)```
+- [ ] ```atcab_sha_hmac(data, key_slot, target)```
+- [x] ```atcab_sign_base(mode, key_id)```
+- [x] ```atcab_sign(key_id, message)```
+- [x] ```atcab_sign_internal(key_id, is_invalidate=False, is_full_sn=False)```
+- [x] ```atcab_updateextra(mode, value)```
+- [x] ```atcab_verify(mode, key_id, signature, public_key=None, other_data=None, mac=None)```
+- [x] ```atcab_verify_extern(message, signature, public_key)```
+- [ ] ```atcab_verify_extern_mac(message, signature, public_key, num_in, io_key, is_verified)```
+- [x] ```atcab_verify_stored(message, signature, key_id)```
+- [ ] ```atcab_verify_stored_mac(message, signature, key_id, num_in, io_key, is_verified)```
+- [ ] ```atcab_verify_validate( key_id, signature, other_data, is_verified)```
+- [ ] ```atcab_verify_invalidate( key_id, signature, other_data, is_verified)```
+- [x] ```atcab_write(zone, address, value=None, mac=None)```
+- [x] ```atcab_write_zone(zone, slot=0, block=0, offset=0, data=None)```
+- [x] ```atcab_write_bytes_zone(zone, slot=0, offset=0, data=None)```
+- [x] ```atcab_write_pubkey(slot, public_key)```
+- [x] ```atcab_write_config_zone(config_data)```
+- [ ] ```atcab_write_enc(key_id, block, data, enc_key, enc_key_id)```
+- [ ] ```atcab_write_config_counter(counter_id, counter_value)```
 
 Hardware
 ---------------------
