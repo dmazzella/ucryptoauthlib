@@ -14,6 +14,7 @@ from ateccX08a import tests_write
 from ateccX08a import tests_lock
 from ateccX08a import tests_verify
 from ateccX08a import tests_sign
+from ateccX08a import tests_selftest
 
 log = logging.getLogger("ateccX08a")
 
@@ -27,7 +28,8 @@ def test(exclude=[
         # 'write',
         'lock',
         # 'verify',
-        # 'sign'
+        # 'sign',
+        # 'selftest'
     ]):
     device = ATECCX08A()
     log.info("%s", device)
@@ -85,6 +87,14 @@ def test(exclude=[
         log.info("SIGN SUCCEDED")
     else:
         log.info("SIGN SKIPPED")
+
+    if 'selftest' not in exclude:
+        tests_selftest.run(device)
+        log.info("SELFTEST SUCCEDED")
+    else:
+        log.info("SELFTEST SKIPPED")
+
+    
 
 # import logging
 # logging.basicConfig(level=logging.DEBUG)

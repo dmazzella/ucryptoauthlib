@@ -497,8 +497,17 @@ class ATECCBasic(object):
     #           CryptoAuthLib Basic API methods for SelfTest command          #
     ###########################################################################
 
-    def atcab_selftest(self, mode, param2):
-        raise NotImplementedError("atcab_selftest")
+    def atcab_selftest(self, mode, param2=0):
+        if self._device != "ATECC608A":
+            raise ATCA_EXCEPTIONS.UnsupportedDeviceError("atcab_selftest")
+        packet = ATCAPacket(
+            opcode=ATCA_CONSTANTS.ATCA_SELFTEST,
+            param1=mode,
+            param2=param2
+        )
+        self.execute(packet)
+        RSP_DATA_IDX = ATCA_CONSTANTS.ATCA_RSP_DATA_IDX
+        return packet[RSP_DATA_IDX] & int(not mode) == ATCA_STATUS.ATCA_SUCCESS
 
     ###########################################################################
     #            CryptoAuthLib Basic API methods for SHA command              #

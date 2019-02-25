@@ -89,12 +89,13 @@ Currently supported commands are:
 * VERIFY (1)
 * GENKEY
 * SIGN
+* SELFTEST
 
   (1) Not all features are implemented, see follow list for details
 
 Currently implemented methods are:
 
-![API Implemented](http://progressed.io/bar/59)
+![API Implemented](http://progressed.io/bar/60)
 
 - [x] ```atcab_version()```
 - [x] ```atcab_get_addr(zone, slot=0, block=0, offset=0)```
@@ -145,7 +146,7 @@ Currently implemented methods are:
 - [x] ```atcab_read_pubkey(slot)```
 - [ ] ```atcab_secureboot(mode, param2, digest, signature)```
 - [ ] ```atcab_secureboot_mac(mode, digest, signature, num_in, io_key)```
-- [ ] ```atcab_selftest(mode, param2)```
+- [x] ```atcab_selftest(mode, param2=0)```
 - [x] ```atcab_sha_base(mode=0, data=b'', key_slot=None)```
 - [x] ```atcab_sha(data)```
 - [ ] ```atcab_sha_hmac(data, key_slot, target)```
