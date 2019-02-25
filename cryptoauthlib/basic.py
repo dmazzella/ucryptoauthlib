@@ -18,8 +18,11 @@ class ATECCBasic(object):
         raise NotImplementedError()
 
     def is_error(self, data):
-        if data[0] == 0x04:  # error packets are always 4 bytes long
-            return ATCA_STATUS.decode_error(data[1])
+        # error packets are always 4 bytes long
+        if data[ATCA_CONSTANTS.ATCA_COUNT_IDX] == 0x04:
+            return ATCA_STATUS.decode_error(
+                data[ATCA_CONSTANTS.ATCA_RSP_DATA_IDX]
+            )
         else:
             return ATCA_STATUS.ATCA_SUCCESS, None
 
