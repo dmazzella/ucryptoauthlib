@@ -51,7 +51,7 @@ INFO:ateccX08a LOCK SKIPPED
 INFO:ateccX08a VERIFY SUCCEDED
 INFO:ateccX08a SIGN SUCCEDED
 INFO:ateccX08a SELFTEST SUCCEDED
->>> 
+>>>
 ```
 
 Enable DEBUG:
@@ -115,7 +115,7 @@ Currently implemented methods are:
 - [ ] ```atcab_ecdh_ioenc(key_id, public_key, io_key)```
 - [ ] ```atcab_ecdh_tempkey(public_key)```
 - [ ] ```atcab_ecdh_tempkey_ioenc(public_key, io_key)```
-- [ ] ```atcab_gendig(zone, key_id, other_data)```
+- [x] ```atcab_gendig(zone, key_id, other_data)```
 - [x] ```atcab_genkey_base(mode, key_id, other_data=None)```
 - [x] ```atcab_genkey(key_id)```
 - [x] ```atcab_get_pubkey(key_id)```

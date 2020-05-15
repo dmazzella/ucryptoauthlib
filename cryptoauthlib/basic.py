@@ -133,7 +133,19 @@ class ATECCBasic(object):
     ###########################################################################
 
     def atcab_gendig(self, zone, key_id, other_data):
-        raise NotImplementedError("atcab_gendig")
+
+        if (zone < 0x00 or zone > 0x05):
+            raise ATCA_EXCEPTIONS.BadArgumentError(
+                "Zone must be between zero and 5")
+
+        packet = ATCAPacket(
+            opcode=ATCA_CONSTANTS.ATCA_GENDIG,
+            param1=zone,
+            param2=key_id,
+            request_data=other_data
+        )
+        self.execute(packet)
+        return packet
 
     ###########################################################################
     #           CryptoAuthLib Basic API methods for GenKey command            #
