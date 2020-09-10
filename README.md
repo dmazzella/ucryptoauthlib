@@ -69,14 +69,14 @@ Only for tests:
 Install 'cryptoauthlib' into the PyBoard
 ---------------------
 
-1. Copy 'cryptoauthlib' into PyBoard's filesystem
-2. Freeze package using FROZEN_MPY_DIR (1)
-   1. For MicroPython >= v1.10-221:
-       - No need to change nothing
-   2. For MicroPython < v1.10-221:
-       - Change into the file cryptoauthlib/packet.py:
-         -- comment optimized method ```at_crc``` decorated with ```@micropython.viper```
-         -- uncomment generic method ```at_crc```
+1. Freeze package using FROZEN_MANIFEST:
+   ```bash
+   $ git clone https://github.com/micropython/micropython.git
+   $ cd micropython
+   micropython$ git submodule update --init
+   micropython$ git clone https://github.com/dmazzella/ucryptoauthlib.git micropython-lib/ucryptoauthlib
+   micropython$ make -C ports/stm32 BOARD=PYBD_SF6 FROZEN_MANIFEST="$(pwd)/micropython-lib/ucryptoauthlib/manifest.py"
+   ```
 
 Software
 ---------------------
