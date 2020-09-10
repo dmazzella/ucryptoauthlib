@@ -75,7 +75,7 @@ Install 'cryptoauthlib' into the PyBoard
    $ cd micropython
    micropython$ git submodule update --init
    micropython$ git clone https://github.com/dmazzella/ucryptoauthlib.git micropython-lib/ucryptoauthlib
-   micropython$ make -C ports/stm32 BOARD=PYBD_SF6 FROZEN_MANIFEST="$(pwd)/micropython-lib/ucryptoauthlib/manifest.py"
+   micropython$ make -C mpy-cross && make -C ports/stm32 BOARD=PYBD_SF6 FROZEN_MANIFEST="$(pwd)/micropython-lib/ucryptoauthlib/manifest.py"
    ```
 
 Software
