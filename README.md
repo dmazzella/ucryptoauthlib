@@ -101,7 +101,7 @@ Currently supported commands are:
 
 Currently implemented methods are:
 
-![API Implemented](http://progressed.io/bar/60)
+![API Implemented](https://progress-bar.dev/60)
 
 - [x] ```atcab_version()```
 - [x] ```atcab_get_addr(zone, slot=0, block=0, offset=0)```
