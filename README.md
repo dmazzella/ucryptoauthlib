@@ -101,7 +101,7 @@ Currently supported commands are:
 
 Currently implemented methods are:
 
-![API Implemented](https://progress-bar.dev/60)
+![API Implemented](https://progress-bar.dev/61)
 
 - [x] ```atcab_version()```
 - [x] ```atcab_get_addr(zone, slot=0, block=0, offset=0)```
@@ -117,7 +117,7 @@ Currently implemented methods are:
 - [ ] ```atcab_ecdh_ioenc(key_id, public_key, io_key)```
 - [ ] ```atcab_ecdh_tempkey(public_key)```
 - [ ] ```atcab_ecdh_tempkey_ioenc(public_key, io_key)```
-- [ ] ```atcab_gendig(zone, key_id, other_data)```
+- [x] ```atcab_gendig(zone, key_id, other_data)```
 - [x] ```atcab_genkey_base(mode, key_id, other_data=None)```
 - [x] ```atcab_genkey(key_id)```
 - [x] ```atcab_get_pubkey(key_id)```
@@ -146,7 +146,7 @@ Currently implemented methods are:
 - [x] ```atcab_is_slot_locked(slot)```
 - [x] ```atcab_is_locked(zone)```
 - [x] ```atcab_read_config_zone()```
-- [ ] ```atcab_read_enc(key_id, block, data, enc_key, enc_key_id)```
+- [x] ```atcab_read_enc(key_id, block, data, enc_key, enc_key_id)```
 - [ ] ```atcab_cmp_config_zone(config_data)```
 - [ ] ```atcab_read_sig(slot)```
 - [x] ```atcab_read_pubkey(slot)```
