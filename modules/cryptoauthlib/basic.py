@@ -133,7 +133,18 @@ class ATECCBasic(object):
     ###########################################################################
 
     def atcab_gendig(self, zone, key_id, other_data):
-        raise NotImplementedError("atcab_gendig")
+        if (zone < 0x00 or zone > 0x05):
+            raise ATCA_EXCEPTIONS.BadArgumentError(
+                "Zone must be between zero and 5")
+
+        packet = ATCAPacket(
+            opcode=ATCA_CONSTANTS.ATCA_GENDIG,
+            param1=zone,
+            param2=key_id,
+            request_data=other_data
+        )
+        self.execute(packet)
+        return packet
 
     ###########################################################################
     #           CryptoAuthLib Basic API methods for GenKey command            #
@@ -451,8 +462,43 @@ class ATECCBasic(object):
             length=ATCA_CONSTANTS.ATCA_ECC_CONFIG_SIZE
         )
 
-    def atcab_read_enc(self, key_id, block, data, enc_key, enc_key_id):
-        raise NotImplementedError("atcab_read_enc")
+    def atcab_read_enc(self, key_id, block, enc_key_id, num_in=b'\x00' * 32):
+        """Perform a simple encrypted read.
+        See Atmel Application Note: Encrypted Reads and Writes
+        """
+        if key_id < 0 or key_id > 15:
+            raise ATCA_EXCEPTIONS.BadArgumentError("Read key out of range")
+        if enc_key_id < 0 or enc_key_id > 15:
+            raise ATCA_EXCEPTIONS.BadArgumentError("Encryption key out of range")
+        if len(num_in) != 32:
+            raise ATCA_EXCEPTIONS.BadArgumentError("numin length must be 32")
+
+        # Write nonce to TempKey in pass through mode (p71)
+        self.atcab_nonce(num_in)
+
+        # Supply OtherData so GenDig behavior is the same for keys with
+        # SlotConfig.NoMac set
+        other_data = bytearray(4)
+        other_data[0] = ATCA_CONSTANTS.ATCA_GENDIG
+        other_data[1] = ATCA_CONSTANTS.GENDIG_ZONE_DATA
+        other_data[2] = enc_key_id
+        other_data[3] = enc_key_id >> 8
+
+        # Generate digest and retreive session key from TempKey.value (p68)
+        gendig_packet = self.atcab_gendig(
+            ATCA_CONSTANTS.GENDIG_ZONE_DATA, enc_key_id, other_data)
+        session_key = gendig_packet.response_data[-32:]
+
+        # Read cipher text value (p81)
+        read_packet = self.atcab_read_zone(
+            ATCA_CONSTANTS.ATCA_ZONE_DATA |
+            ATCA_CONSTANTS.ATCA_ZONE_READWRITE_32,
+            key_id, block, 0, ATCA_CONSTANTS.ATCA_BLOCK_SIZE)
+        cipher_text = read_packet.response_data
+
+        # Decrypt
+        plain_text = bytes(a ^ b for (a, b) in zip(cipher_text, session_key))
+        return plain_text
 
     def atcab_cmp_config_zone(self, config_data):
         raise NotImplementedError("atcab_cmp_config_zone")
