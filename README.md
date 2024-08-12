@@ -6,7 +6,7 @@ WARNING: this project is in beta stage and is subject to changes of the
 code-base, including project-wide name changes and API changes.
 
 > [!TIP]
-> If you find **ucrypto** useful, consider :star: this project
+> If you find **ucryptoauthlib** useful, consider :star: this project
 > and why not ... [Buy me a coffee](https://www.buymeacoffee.com/damianomazp) :smile:
 
 Features
